@@ -36,10 +36,10 @@
         pass. In the forward pass an example (or mini-batch) is propogated through the network to produce a value
         $v_j$ at each node and outputs $\hat{\mathbf{y}}$ at the final/top layer. Next the loss
         $\mathcal{L}(\hat{y}_k, y_k)$ is calcualted at each output node $k$. For each output node $k$ we then calculate
-        $$\delta_k = \frac{\partial \mathcal{L}(\hat{y}_k, y_k)}{\partial \hat{y}_k} \cdot l^{'}_k(a_k).$$
+        $$\delta_k = \frac{\partial \mathcal{L}(\hat{y}_k, y_k)}{\partial \hat{y}_k} \cdot l'_k(a_k).$$
         Given the $\delta_j$ values for each node in the layer following/above node $i$ such that tere is an edge from
         $i$ to $j$, we calculate
-        $$\delta_i = l^{'}_i(a_i) \sum_{j} \delta_j \cdot w_{ji}.$$
+        $$\delta_i = l'_i(a_i) \sum_{j} \delta_j \cdot w_{ji}.$$
         Each value $\delta_i$ represents the derivative $\partial \mathcal{L} / \partial a_i$ of the total loss of the
         network with respect to node $i$'s incoming activation. Given the values $v_i$ calcualted during the forward
         pass and the values $\delta_j$ calculated during the backward pass, the derivative of the loss function
