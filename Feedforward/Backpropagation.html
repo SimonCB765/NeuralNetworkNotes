@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Feedforward Backpropagation</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+        </head>
+    </head>
+    <body>
+    <p>
+        The most successful algorithm or training neural networks is backpropagation. This approach uses the chain rule
+        to calculate the derivative of the loss function $\mathcal{L}$ with respect to each parameter in the network.
+        The weights are then adjusted by gradient descent. Exact optimisation is known to be an NP-hard problem, and
+        as the surface of the loss function is non-convex, there is no guarantee that a global minimum wil be reached.
+    </p>
+    <p>
+        Commonly, neural networks are trained via stochastic gradient descent (SGD) using mini-batches, or one of its
+        many variants. With a batch size of one, the SGD update rule is
+        $$\mathbf{w} \leftarrow \mathbf{w} - \eta\nabla_{w}F_i$$
+        where $\eta$ is the learning rate and $\nabla_{w}F_i$ the gradient of the objective function with respect to
+        the parameters $\mathbf{w}$ as calculated on a single example $(x_i, y_i)$. The learning rate can be fixed, as
+        in vanilla SGD, or adaptively tuned, as in the popular variants
+        <a href="../General/Optimisation.html#AdaGrad">AdaGrad</a>,
+        <a href="../General/Optimisation.html#AdaDelta">AdaDelta</a>,
+        <a href="../General/Optimisation.html#RMSprop">RMSprop</a> and
+        <a href="../General/Optimisation.html#Adam">Adam</a>.
+    </p>
+    <p>
+        To calculate the gradient in a feedforward network, backpropagation proceeds through a forward and backward
+        pass. In the forward pass an example (or mini-batch) is propogated through the network to produce a value
+        $v_j$ at each node and outputs $\hat{\mathbf{y}}$ at the final/top layer. Next the loss
+        $\mathcal{L}(\hat{y}_k, y_k)$ is calcualted at each output node $k$. For each output node $k$ we then calculate
+        $$\delta_k = \frac{\partial \mathcal{L}(\hat{y}_k, y_k)}{\partial \hat{y}_k} \cdot l^{'}_k(a_k).$$
+        Given the $\delta_j$ values for each node in the layer following/above node $i$ such that tere is an edge from
+        $i$ to $j$, we calculate
+        $$\delta_i = l^{'}_i(a_i) \sum_{j} \delta_j \cdot w_{ji}.$$
+        Each value $\delta_i$ represents the derivative $\partial \mathcal{L} / \partial a_i$ of the total loss of the
+        network with respect to node $i$'s incoming activation. Given the values $v_i$ calcualted during the forward
+        pass and the values $\delta_j$ calculated during the backward pass, the derivative of the loss function
+        $\mathcal{L}$ with resect to the weight parameter $w_{ji}$ is
+        $$\frac{\partial \mathcal{L}}{\partial w_{ji}} = \delta_j v_i.$$
+    </p>
+    <p>Uncited References</p>
+    <ul>
+        <li>
+            <a href="../References.html#critReviewOfRNNs">
+                A Critical Review of Recurrent Neural Networks for Sequence Learning
+            </a>
+        </li>
+    </ul>
+    </body>
+</html>

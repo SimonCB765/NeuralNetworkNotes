@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Feedforward NN Introducton and Notation</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+        </head>
+    </head>
+    <body>
+    <p>
+        A neural network consists of a set of artifical neurons, commonly referred to as nodes, and a set of
+        directed edges between them. Associated with each neuron $j$ is an activation or link function $l_{j}(\cdot)$.
+        $l_{j}(\cdot)$ is used for the activation function rather than $h_{j}(\cdot)$, as $\mathbf{h}$ will be
+        reserved for vectors of hidden units.
+    </p>
+    <p>
+        Associated with each edge from node $i$ to $j$ is a weight $w_{ji}$. Take note that unlike most graph-based
+        equations, the source node is the right index and the target node the left index. This is necessary to simplify
+        the training procedure. The value $v_j$ of a node is then claculated by applying its activation function to a
+        weighted sum of the values of its inputs, with those inputs being the outputs of the the source nodes for edges
+        incident to it. Here this weighted sum is termed the incoming activation, and denoted by $a_j$.
+        $$a_j = \sum_{i} w_{ji} \cdot v_i$$
+        $$v_j = l_{j}(a_j)$$
+        (Add image of neuron <a href="like http://www.saedsayad.com/images/ANN_4.png">like this</a>)
+    </p>
+    <p>
+        The input to a feedforward network is supplied by setting the values of the nodes in the lowest layer of the
+        network to the input $\mathbf{x}$. Each successive layer has its values computed until the output
+        $\hat{\mathbf{y}}$ is computed from the final/top layer. Learning is carried out by iteratively updating the
+        weights of the network to minimise a loss function $\mathcal{L}(\hat{\mathbf{y}}, \mathbf{y})$ that penalises
+        the distance between the ouput $\hat{\mathbf{y}}$ and the true target $\mathbf{y}$.
+    </p>
+    <p>Uncited References:</p>
+    <ul>
+        <li>
+            <a href="../References.html#critReviewOfRNNs">
+                A Critical Review of Recurrent Neural Networks for Sequence Learning
+            </a>
+        </li>
+    </ul>
+    </body>
+</html>
