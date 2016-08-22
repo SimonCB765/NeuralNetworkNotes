@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>RNN Training</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+        </head>
+    </head>
+    <body>
+    <p>
+        Learning in RNNs can be especially challenging due to the difficulty of learning long-range dependencies (
+        <a href="../References.html#longTermDepDiff1">
+            Learning long-term dependencies with gradient descent is difficult
+        </a>
+        and
+        <a href="../References.html#longTermDepDiff2">
+            Gradient Flow in Recurrent Nets: the Difficulty of Learning Long-Term Dependencies
+        </a>).
+        This difficulty exists due to the need to propogate errors across many time steps, leading to vanishing or
+        exploding gradients. Consider figure A below with one input, hidden and output node. Now consider an input
+        passed to the network at time step $t'$ and an error calcualte later at time step $t$. The tying of weights
+        across time steps means that the recurrent edge at hidden node $\mathbf{h}_j$ always has the same weight.
+        The contribution of the input at time step $t'$ to the output at time step $t$ will therefore either explode or
+        approach zero (exponentially fast) as $t-t'$ grows larger. Hence the derivative of the error with respect to the
+        input will either explode or vanish.
+    </p>
+    <img src="../Images/RNN/VanishingGradient.jpg">
+    <p>Uncited References:</p>
+    <ul>
+        <li>
+            <a href="../References.html#critReviewOfRNNs">
+                A Critical Review of Recurrent Neural Networks for Sequence Learning
+            </a>
+        </li>
+    </ul>
+    </body>
+</html>
