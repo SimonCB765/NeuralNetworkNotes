@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Optimisation Methods</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+        </head>
+    </head>
+    <body>
+    <div id="AdaDelta">
+        <p>
+            <a href="../References.html#AdaDelta">AdaDelta</a>
+        </p>
+    </div>
+    <div id="AdaGrad">
+        <p>
+            <a href="../References.html#AdaGrad">AdaGrad</a> adapts the learning rate by caching the sum of squared
+            gradients with respect to each parameter at each time step. The step size for each feature is multiplied
+            by the inverse of this cached value. AdaGrad leads to fast convergence on convex error surfaces, but
+            because the cached sum is monotonically increasing, the method has a monotonically decreasing learning
+            rate, which may be undesirable on highly nonconvex loss surfaces.
+        </p>
+    </div>
+    <div id="Adam">
+        <p>
+            <a href="../References.html#Adam">Adam</a>
+        </p>
+    </div>
+    <div id="RMSprop">
+        <p>
+            <a href="../References.html#RMSprop">RMSprop</a>
+        </p>
+    </div>
+    <p>Uncited References</p>
+    <ul>
+        <li>
+            <a href="">
+            </a>
+        </li>
+    </ul>
+    </body>
+</html>
