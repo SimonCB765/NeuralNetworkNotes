@@ -32,7 +32,7 @@
 
         Nodes within the network can be identified individually as $n^{l}_{i}$, indicating node $i$ in layer $l$.
 
-        Similarly, an edge from node $n^{l-l}_{i}$ to node $n^{l}_{j}$ can be identified as $W^{l}_{ji}$.
+        Similarly, an edge from node $n^{l-1}_{i}$ to node $n^{l}_{j}$ can be identified as $W^{l}_{ji}$.
 
         In contrast to most graph notation, $W^{l}_{ji}$ indicates an edge going from node $i$ in layer $l-1$ to
         node $j$ in layer $l$.
@@ -59,8 +59,8 @@
         Each node $n^{l}_{i}$ with $l>0$ is also associated with a bias parameter $\mathbf{b}^{l}_{i}$ that enables
         these nodes to learn an offset.
 
-        Edges are also associated with values, with the edge $W^{l}_{ji}$ from node $n^{l-l}_{i}$ to node $n^{l}_{j}$
-        being considered a weight parameter of the network that is used to weight the output of node $n^{l-l}_{i}$
+        Edges are also associated with values, with the edge $W^{l}_{ji}$ from node $n^{l-1}_{i}$ to node $n^{l}_{j}$
+        being considered a weight parameter of the network that is used to weight the output of node $n^{l-1}_{i}$
         when calculating the activation of node $n^{l}_{j}$.
 
         These node activation and output valus can now be computed as:
