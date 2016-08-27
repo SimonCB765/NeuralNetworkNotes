@@ -13,12 +13,126 @@
         </head>
     </head>
     <body>
-    <p>
-        The most successful algorithm or training neural networks is backpropagation. This approach uses the chain rule
-        to calculate the derivative of the loss function $\mathcal{L}$ with respect to each parameter in the network.
-        The weights are then adjusted by gradient descent. Exact optimisation is known to be an NP-hard problem, and
-        as the surface of the loss function is non-convex, there is no guarantee that a global minimum wil be reached.
-    </p>
+        <section>
+            <h2>Introduction</h2>
+            <p>
+                The most common algorithm for training neural networks is backpropagation.
+
+                This approach uses the <a href="../General/ChainRule.html">chain rule</a> to compute the partial
+                derivative of the cost $\mathcal{J}$ with respect to each parameter, i.e.
+                $\partial \mathcal{J} / \partial W^{l}_{ji}$ and $\partial \mathcal{J} / \partial b^{l}_{j}$ for all
+                weights $W^{l}_{ji}$ and biases $b^{l}_{j}$.
+
+                The parameters are then adjusted as required to minimise the cost $\mathcal{J}$.
+
+                As the cost surface is likely to be non-convex, there is no guarantee that a global minimum will be
+                reached, and therefore optimisation heuristics based on gradient descent are often used instead.
+            </p>
+        </section>
+        <section>
+            <h2>Intuition</h2>
+            <p>
+                Given a neural network, making a small change $\Delta W^{l}_{ji}$ to the weight of edge $W^{l}_{ji}$
+                will result in a corresponding change in the output $\mathbf{h}^{l}_{j}$ of the target neuron of the
+                edge.
+
+                Assuming a fully connected network, this change will affect all outputs $\mathbf{h}^{l+1}$ of the
+                neurons in the next layer.
+
+                This repeats as the change propagates through the network until it reaches the output $\mathbf{h}^L$ of
+                the neurons in the output layer of the network, and consequently causes a change in the cost
+                $\mathcal{J}$.
+
+                Ignoring biases, the changes can be related through
+                $\Delta \mathcal{J} \approx \frac{\partial \mathcal{J}}{\partial W^{l}_{ji}} \Delta W^{l}_{ji}$, i.e.
+                the change in the cost is approximately equal to the change in the cost with respect to a change in
+                the weight multiplied by the actual change in the weight's value.
+
+                One way to calculate $\partial \mathcal{J} / \partial W^{l}_{ji}$ is to follow the small perturbations
+                caused by $\Delta W^{l}_{ji}$ until we reach $\mathcal{J}$.
+
+                Concentrating on one neuron in each layer and ignoring biases, $\Delta W^{l}_{ji}$ causes a change
+                $\Delta \mathbf{h}^{l}_{j}$ in the output of the $j$th neuron in the $l$th layer.
+
+                This change is given by:
+                $$
+                    \Delta \mathbf{h}^{l}_{j} \approx
+                        \frac{\partial \mathbf{h}^{l}_{j}}{\partial W^{l}_{ji}}
+                        \Delta W^{l}_{ji}
+                $$
+
+                Taking one neuron in layer $l+1$ affected by this change in $\mathbf{h}^{l}_{j}$ gives:
+                $$
+                    \begin{align}
+                    \Delta \mathbf{h}^{l+1}_{k} & \approx
+                        \frac{\partial \mathbf{h}^{l+1}_{k}}{\partial \mathbf{h}^{l}_{j}}
+                        \Delta \mathbf{h}^{l}_{j}
+                    \\
+                    \Delta \mathbf{h}^{l+1}_{k} & \approx
+                        \frac{\partial \mathbf{h}^{l+1}_{k}}{\partial \mathbf{h}^{l}_{j}}
+                        \frac{\partial \mathbf{h}^{l}_{j}}{\partial W^{l}_{ji}}
+                        \Delta W^{l}_{ji}
+                    \end{align}
+                $$
+
+                Propagating this to the output of the network gives:
+                $$
+                    \Delta \mathcal{J} \approx
+                        \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{L}_{z}}
+                        \frac{\partial \mathbf{h}^{L}_{z}}{\partial \mathbf{h}^{L-1}_{y}}
+                        \frac{\partial \mathbf{h}^{L-1}_{y}}{\partial \mathbf{h}^{L-2}_{x}}
+                        \ldots
+                        \frac{\partial \mathbf{h}^{l+1}_{k}}{\partial \mathbf{h}^{l}_{j}}
+                        \frac{\partial \mathbf{h}^{l}_{j}}{\partial W^{l}_{ji}}
+                        \Delta W^{l}_{ji}
+                $$
+
+                In order to get the entire change in the cost $\mathcal{J}$ caused by the change $\Delta W^{l}_{ji}$ it
+                is necessary to sum over all paths from $W^{l}_{ji}$ to $\mathcal{J}$ as:
+                $$
+                    \Delta \mathcal{J} \approx
+                        \sum_{zyx..k}
+                            \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{L}_{z}}
+                            \frac{\partial \mathbf{h}^{L}_{z}}{\partial \mathbf{h}^{L-1}_{y}}
+                            \frac{\partial \mathbf{h}^{L-1}_{y}}{\partial \mathbf{h}^{L-2}_{x}}
+                            \ldots
+                            \frac{\partial \mathbf{h}^{l+1}_{k}}{\partial \mathbf{h}^{l}_{j}}
+                            \frac{\partial \mathbf{h}^{l}_{j}}{\partial W^{l}_{ji}}
+                            \Delta W^{l}_{ji}
+                $$
+
+                Substituting this into
+                $\Delta \mathcal{J} \approx \frac{\partial \mathcal{J}}{\partial W^{l}_{ji}} \Delta W^{l}_{ji}$ gives:
+                $$
+                    \frac{\partial \mathcal{J}}{\partial W^{l}_{ji}} \approx
+                        \sum_{zyx..k}
+                            \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{L}_{z}}
+                            \frac{\partial \mathbf{h}^{L}_{z}}{\partial \mathbf{h}^{L-1}_{y}}
+                            \frac{\partial \mathbf{h}^{L-1}_{y}}{\partial \mathbf{h}^{L-2}_{x}}
+                            \ldots
+                            \frac{\partial \mathbf{h}^{l+1}_{k}}{\partial \mathbf{h}^{l}_{j}}
+                            \frac{\partial \mathbf{h}^{l}_{j}}{\partial W^{l}_{ji}}
+                $$
+
+                What this tells us is that each edge in the network is associated with a rate, which is just
+                the partial derivative of the target neuron's output with respect to the source neuron's output, i.e.
+                $\partial \mathbf{h}^{l+1}_{j} / \partial \mathbf{h}^{l}_{i}$.
+
+                The rate along a path between neurons is then just the product of the rates of the edges that make up
+                the path, and the total rate between two neurons in the network is just the sum of the rates along all
+                paths between the two.
+
+                Now that we have the gradient of the cost $\mathcal{J}$ with respect to any weight in the network, we
+                can determine how to change the weight in order to minimise $\mathcal{J}$.
+            </p>
+            <img src="../Images/Feedforward/BackpropIntuition.png">
+        </section>
+        <section>
+        </section>
+
+
+
+
     <p>
         Commonly, neural networks are trained via stochastic gradient descent (SGD) using mini-batches, or one of its
         many variants. With a batch size of one, the SGD update rule is
