@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Feedforward Backpropagation</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <p>
+            The Jacobian matrix is essentially the derivative of a vector with respect to another vector.
+
+            To capture all the partial derivatives of this you need a two dimensional structure, hence the Jacobian
+            matrix.
+
+            First consider a scalar to scalar function $y = f(x)$ with $f: \mathbb{R} \to \mathbb{R}$.
+
+            The derivative of $f$ is simply a $1 \times 1$ matrix, or scalar, $dy / dx$.
+
+            If we then take $f$ to be a vector-valued function of one variable, i.e. $f: \mathbb{R} \to \mathbb{R}^n$
+            so $x \in \mathbb{R}$ and $y \in \mathbb{R}^n$, then applying $f$ gives you an $n$-dimensional vector
+            $f(x) = (f_1(x), f_2(x), \ldots, f_n(x))$.
+
+            The derivative is then $f'(x) = (f_1'(x), f_2'(x), \ldots, f_n'(x))$, which is an $n$-dimensional vector
+            of derivatives.
+
+            Next, consider real-values functions of $m > 1$ variables, i.e. $f: \mathbb{R}^m \to \mathbb{R}$.
+
+            Then $f(\mathbf{x}) = f(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_m)$ and its derivative is the
+            $m$-dimensional vector
+            $$
+                \nabla_{\mathbf{x}} f = \left(
+                    \frac{\partial f}{\partial \mathbf{x}_1},
+                    \frac{\partial f}{\partial \mathbf{x}_2},
+                    \ldots,
+                    \frac{\partial f}{\partial \mathbf{x}_m}
+                \right)
+            $$
+
+            If we then take $f$ to be a vector-valued function of $m > 1$ variables, i.e.
+            $f: \mathbb{R}^m \to \mathbb{R}^n$ with $n > 1$, we have a function of the form:
+            $$
+                \begin{align}
+                \mathbf{y}
+                    & = f(\mathbf{x}) \\
+                    & = f(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_m) \\
+                    & = \begin{bmatrix} f_1(\mathbf{x}) \\ f_2(\mathbf{x}) \\ \vdots \\ f_n(\mathbf{x}) \end{bmatrix} \\
+                    & = \begin{bmatrix}
+                        f_1(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_m) \\
+                        f_2(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_m) \\
+                        \vdots \\
+                        f_n(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_m))
+                        \end{bmatrix}
+                \end{align}
+            $$
+            with $f$ having $n$ component or coordinate functions $f_1$ through $f_n$.
+
+            The Jacobian matrix $\mathbf{J}_f$ is then the $\mathsf{n} \times \mathsf{m}$ matrix of partial derivatives
+            of each component function $f_i$ of $f$ with respect to the values $x_1, x_2, \ldots, x_m$, i.e.
+            $$
+                \mathbf{J}_f = \frac{df}{d\mathbf{x}} =
+                [\nabla_{\mathbf{x}} f_1, \nabla_{\mathbf{x}} f_2, \ldots, \nabla_{\mathbf{x}} f_n]^{\mathsf{T}} =
+                \begin{bmatrix}
+                    \frac{\partial f_1}{\partial \mathbf{x}_1} & \cdots & \frac{\partial f_1}{\partial \mathbf{x}_m}\\
+                    \vdots & \ddots & \vdots \\
+                    \frac{\partial f_n}{\partial \mathbf{x}_1} & \cdots & \frac{\partial f_n}{\partial \mathbf{x}_m}
+                \end{bmatrix}
+            $$
+            where $f$ and $\mathbf{y}$ are interchangeable.
+
+            Any $f$ of this form can be considered to be implementing a change of coordinate planes, e.g. taking
+            something in the $m$-dimensional plane where $\mathbf{x}$ lies and mapping it to the
+            $n$-dimensional plane where $\mathbf{y}$ resides.
+        <p>Uncited References:</p>
+        <ul>
+            <li>
+                <a href="../References.html#DeepLearningBook">
+                    Deep Learning
+                </a>
+            </li>
+            <li>
+                <a href="http://web.maths.unsw.edu.au/~cct/2011Notes/Jacobian2011-2011.pdf">
+                    Jacobian Lecture
+                </a>
+            </li>
+        </ul>
+    </body>
+</html>

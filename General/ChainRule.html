@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Feedforward Backpropagation</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <p>
+            Given a scalar $x \in \mathbb{R}$ and functions $y = f(x)$ and $z = g(y) = g(f(x))$, with
+            $f: \mathbb{R} \to \mathbb{R}$ and $g: \mathbb{R} \to \mathbb{R}$, then the chain rule states that
+            $$\frac{dz}{dx} = \frac{dz}{dy} \frac{dy}{dx}$$
+
+            In the case of non-scalar $x \in \mathbb{R}^m$ and $y \in \mathbb{R}^n$, with
+            $f: \mathbb{R}^m \to \mathbb{R}^n$ and $g: \mathbb{R}^n \to \mathbb{R}$, then
+            $$
+                \frac{\partial z}{\partial \mathbf{x}_i} =
+                    \sum_j
+                        \frac{\partial z}{\partial \mathbf{y}_j}
+                        \frac{\partial \mathbf{y}_j}{\partial \mathbf{x}_i}
+            $$
+            That is, the partial derivative of $z$ with respect to one of the elements of the vector $\mathbf{x}$ is
+            a sum over the application of the chain rule for each element of the vector $\mathbf{y}$, holding $z$
+            and $\mathbf{x}_i$ constant.
+
+            The gradient for each element of $\mathbf{x}$ is therefore a sum of partial derivatives
+            $$
+                \frac{\partial z}{\partial \mathbf{y}_1} \frac{\partial \mathbf{y}_1}{\partial \mathbf{x}_i} +
+                \frac{\partial z}{\partial \mathbf{y}_2} \frac{\partial \mathbf{y}_2}{\partial \mathbf{x}_i} +
+                \ldots +
+                \frac{\partial z}{\partial \mathbf{y}_n} \frac{\partial \mathbf{y}_n}{\partial \mathbf{x}_i}
+            $$
+
+            Taking $\nabla_{\mathbf{x}} z$ to be the vector of partial derivatives of each $i \in \mathbf{x}$ with
+            respect to $z$, i.e.
+            $$
+                \nabla_{\mathbf{x}} z =
+                    \begin{bmatrix}
+                        \partial z / \partial \mathbf{x}_1 \\
+                        \partial z / \partial \mathbf{x}_2 \\
+                        \vdots \\
+                        \partial z / \partial \mathbf{x}_m
+                    \end{bmatrix}
+            $$
+            then the partial derivative of $\mathbf{x}$ with respect to $z$ can be written in vector
+            notation as:
+            $$
+                \begin{align}
+                \nabla_{\mathbf{x}} z & =
+                    \sum_j
+                        \frac{\partial z}{\partial \mathbf{y}_j}
+                        \nabla_{\mathbf{x}} \mathbf{y}_j
+                \\
+                & =
+                    \nabla_{\mathbf{x}} \mathbf{y}_1 \frac{\partial z}{\partial \mathbf{y}_1} +
+                    \nabla_{\mathbf{x}} \mathbf{y}_2 \frac{\partial z}{\partial \mathbf{y}_2} +
+                    \ldots +
+                    \nabla_{\mathbf{x}} \mathbf{y}_n \frac{\partial z}{\partial \mathbf{y}_n}
+                \\
+                & =
+                    \begin{bmatrix}
+                        \partial \mathbf{y}_1 / \partial \mathbf{x}_1 \\
+                        \partial \mathbf{y}_1 / \partial \mathbf{x}_2 \\
+                        \vdots \\
+                        \partial \mathbf{y}_1 / \partial \mathbf{x}_m
+                    \end{bmatrix}
+                        \frac{\partial z}{\partial \mathbf{y}_1} +
+                    \begin{bmatrix}
+                        \partial \mathbf{y}_2 / \partial \mathbf{x}_1 \\
+                        \partial \mathbf{y}_2 / \partial \mathbf{x}_2 \\
+                        \vdots \\
+                        \partial \mathbf{y}_2 / \partial \mathbf{x}_m
+                    \end{bmatrix}
+                        \frac{\partial z}{\partial \mathbf{y}_2} +
+                    \ldots +
+                    \begin{bmatrix}
+                        \partial \mathbf{y}_n / \partial \mathbf{x}_1 \\
+                        \partial \mathbf{y}_n / \partial \mathbf{x}_2 \\
+                        \vdots \\
+                        \partial \mathbf{y}_n / \partial \mathbf{x}_m
+                    \end{bmatrix}
+                        \frac{\partial z}{\partial \mathbf{y}_n}
+                \\
+                & =
+                    \begin{bmatrix}
+                        \frac{\partial \mathbf{y}_1}{\partial \mathbf{x}_1} &
+                            \cdots &
+                            \frac{\partial \mathbf{y}_n}{\partial \mathbf{x}_1} \\
+                        \vdots & \ddots & \vdots \\
+                        \frac{\partial \mathbf{y}_1}{\partial \mathbf{x}_m} &
+                            \cdots &
+                            \frac{\partial \mathbf{y}_n}{\partial \mathbf{x}_m}
+                    \end{bmatrix}
+                    \begin{bmatrix}
+                        \partial z / \partial \mathbf{y}_1 \\
+                        \partial z / \partial \mathbf{y}_2 \\
+                        \vdots \\
+                        \partial z / \partial \mathbf{y}_n
+                    \end{bmatrix}
+                \\
+                & =
+                    \mathbf{J}^{\mathsf{T}}_f
+                    \nabla_{\mathbf{y}} z
+                \end{align}
+            $$
+            where $\mathbf{J}^{\mathsf{T}}_f$ is the transpose of the $\mathsf{n} \times \mathsf{m}$
+            <a href="../General/Jacobian.html">Jacobian matrix</a> of the vector-valued function $f$.
+
+            As the domain and range (or codomain) of $f$ are $\mathbb{R}^m$ and $\mathbb{R}^n$ respectively, the
+            Jacobian matrix is $\mathsf{n} \times \mathsf{m}$.
+
+            Similarly, $\nabla_{\mathbf{y}} z$ is an $n$-dimensional column vector as $g$'s domain is $\mathbb{R}^n$.
+
+            Therefore, $\mathbf{J}_f$ must be transposed in order to successfully multiply the two to produce the
+            $m$-dimensional column vector $\nabla_{\mathbf{x}} z$.
+
+            From this it is possible to see that the gradient of a variable $\mathbf{x}$ with respect to some value,
+            i.e. $\nabla_{\mathbf{x}} z$, can be computed by multiplying a Jacobian matrix and another gradient.
+        </p>
+        <p>
+            Computing the gradient in this manner is not restricted to vectors, but can be extended to tensors of
+            arbitrary dimensionality.
+
+            Intuitively this is clear, as you could simply flatten the tensor into a vector and carry on as before.
+
+            For example, the gradient of value $z$ with respect to tensor $\mathsf{X}$ can be denoted as
+            $\nabla_{\mathsf{X}} z$ in the same manner that it would be if $\mathsf{X}$ were a vector.
+
+            Indices into $\mathsf{X}$ now have multiple components to handle the multiple dimensions of $\mathsf{X}$,
+            but this can be abstracted away by treating $i$ as a tuple that indexes $\mathsf{X}$.
+
+            For all possible index tuples $i$, $(\nabla_{\mathsf{X}} z)_i$ gives $\partial z / \partial \mathsf{X}_i$,
+            in the same manner that $(\nabla_{\mathbf{x}} z)_i$ would give $\partial z / \partial \mathbf{x}_i$ for a
+            vector $\mathbf{x}$.
+
+            The chain rule applied to tensors is then the same as that for vectors, with $\mathsf{Y} = f(\mathsf{X})$,
+            $z = g(\mathsf{Y})$ and
+            $$
+                \begin{align}
+                \nabla_{\mathsf{X}} z & =
+                    \sum_j
+                        \frac{\partial z}{\partial \mathsf{Y}_j}
+                        \nabla_{\mathsf{X}} \mathsf{Y}_j
+                \\
+                & =
+                    \mathbf{J}^{\mathsf{T}}_f
+                    \nabla_{\mathsf{Y}} z
+                \end{align}
+            $$
+        </p>
+        <p>Uncited References:</p>
+        <ul>
+            <li>
+                <a href="../References.html#DeepLearningBook">
+                    Deep Learning
+                </a>
+            </li>
+        </ul>
+    </body>
+</html>
