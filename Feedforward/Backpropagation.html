@@ -17,10 +17,17 @@
             <p>
                 The most common algorithm for training neural networks is backpropagation.
 
-                This approach uses the <a href="../General/ChainRule.html">chain rule</a> to compute the partial
-                derivative of the cost $\mathcal{J}$ with respect to each parameter, i.e.
-                $\partial \mathcal{J} / \partial W^{l}_{ji}$ and $\partial \mathcal{J} / \partial b^{l}_{j}$ for all
-                weights $W^{l}_{ji}$ and biases $b^{l}_{j}$.
+                This approach uses the <a href="../General/ChainRule.html">chain rule</a> to compute the gradient
+                $\nabla_x f(x,y)$ where $x$ is a set of variables that we want the gradient for, with respect to
+                $f(x,y)$, and $y$ is another set of variables that parametrise the function but we don't need
+                derivatives for (i.e. they are inputs).
+
+                In general in machine learning, the gradient we are looking for is $\nabla_\theta \mathcal{J}(\theta)$,
+                i.e. the gradient of the cost function with respect the the parameters $\theta$.
+
+                For neural networks this is the partial derivative of the cost $\mathcal{J}$ with respect to the
+                weights and biases, $W^{l}_{ji}$ and $b^{l}_{j}$ respectively, in the network, i.e.
+                $\partial \mathcal{J} / \partial W^{l}_{ji}$ and $\partial \mathcal{J} / \partial b^{l}_{j}$.
 
                 The parameters are then adjusted as required to minimise the cost $\mathcal{J}$.
 
@@ -29,7 +36,96 @@
             </p>
         </section>
         <section>
-            <h2>Intuition</h2>
+            <h2>Explicit Backpropagation via Recursive Chain Rule Applications</h2>
+            <p>
+                Backpropagation is not restricted to the case of neural network parameter optimisation, but rather
+                is a general approach for computing the derivative of a function.
+
+                One way of understanding this is to consider a function as a computational graph.
+
+                Nodes in the graph represent variables, which can be scalars, vectors, matrices, tensors, etc.
+
+                Edges are directed and indicate operations on variables, with an edge from node $i$ to node $j$
+                indicating that the operation that computes $j$ takes $i$ as an input.
+
+                Operations can have arbitrary numbers of inputs and outputs, but here are restricted to single
+                variable outputs as variables can be multi-entry (e.g. vectors), and so no generality is lost.
+
+                All nodes, except input nodes, are therefore associated with an operation that computes the value
+                of the variable the node represents.
+
+                For node $i$, this operation can be represented as $f_i(\operatorname{Parents}(i))$, i.e. the operator
+                $f$ associated with node $i$ applied to $i$'s parents, where the parents of
+                a node $i$ are all nodes $j$ such that there is an edge $j \to i$ in the graph.
+
+                The children $\operatorname{Children}(i)$ of $i$ can be defined similarly to be all nodes $j$ such that
+                there is an edge $i \to j$ in the graph.
+
+                Some examples of computational graphs can be seen below.
+            </p>
+            <img src="../Images/Feedforward/ExampleCompGraphs.png">
+            <p>
+                Consider the graph of the computation of a scalar variable $v_n$.
+
+                We want to obtain the gradient of this scalar with respect to the $m$ input variables to the function,
+                $v_1 \ldots v_m$ with $m \lt n$, i.e. $\partial v_n / \partial v_i$ for all $i \in {1, 2, \ldots, m}$.
+
+                In the case of backpropagation applied to neural networks, $v_1 \ldots v_m$ would be the parameters
+                of the model and $v_n$ the cost associated with an example or minibatch.
+
+                Simply by index reordering, we can assume that the nodes in the graph are a partial ordering such that
+                if $i \le j$ then $v_i \le v_j$, i.e. $v_i$ can be computed before $v_j$.
+
+                In this manner the nodes can be computed one after the other starting with $v_{m+1}$ and ending with
+                $v_n$.
+
+                Given the graph $\mathcal{G}$ of the computation of $v_n$, we can construct another computational graph
+                $\mathcal{B}$ with one node for each node in $\mathcal{G}$, but with the computation proceeding in
+                the opposite direction.
+
+                Where $\mathcal{G}$ represents the forward computation of $v_n$, $\mathcal{B}$ represents the backwards
+                computation of the derivative $\partial v_n / \partial v_i$ associated with each node $v_i$ in
+                $\mathcal{G}$.
+
+                This is done using recursive applications of the chain rule with respect to $v_n$:
+                $$
+                    \frac{\partial v_n}{\partial v_j} =
+                        \sum_{i \in \operatorname{Children}(v_j)}
+                            \frac{\partial v_n}{\partial v_i}
+                            \frac{\partial v_i}{\partial v_j}
+                $$
+
+                An example of constructing $\mathcal{B}$ from $\mathcal{G}$ can be seen below.
+            </p>
+            <img src="../Images/Feedforward/ExampleDerivGraph.png">
+            <p></p>
+        </section>
+        <section>
+            <h2>Symbol-to-Symbol Differentiation</h2>
+            <p>
+                Rather than duplicating the structure of the computational graph $\mathcal{G}$ when we construct
+                $\mathcal{B}$, we can instead augment $\mathcal{G}$ with new nodes representing the derivatives we
+                are interested in.
+
+                In this symbol-to-symbol approach the backpropagation algorithm does not need to access any numeric
+                values.
+
+                Rather it describes how to compute the derivatives through its augmentation of $\mathcal{G}$.
+
+                Later, derivatives for specific numeric values can be computed using a (graph) evaluation engine.
+
+                Because derivatives are described in the same language as the original computation, it is also possible
+                to run backpropagation again to compute higher order derivatives.
+
+                An example of this augmentation can be seen below.
+            </p>
+            <img src="../Images/Feedforward/SymbolToSymbolExample.png">
+        </section>
+        <section>
+            <h2>General Backpropagation</h2>
+        </section>
+        <section>
+            <h2>Intuition for Neural Network Backpropagation</h2>
             <p>
                 Given a neural network, making a small change $\Delta W^{l}_{ji}$ to the weight of edge $W^{l}_{ji}$
                 will result in a corresponding change in the output $\mathbf{h}^{l}_{j}$ of the target neuron of the
@@ -127,6 +223,7 @@
             <img src="../Images/Feedforward/BackpropIntuition.png">
         </section>
         <section>
+            <h2>Backpropagation in a MLP</h2>
         </section>
 
 
