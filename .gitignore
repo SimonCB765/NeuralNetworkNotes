@@ -1,3 +1,8 @@
 # Ignore PyCharm files.
 *.idea
 
+# Ignore LaTeX outputs.
+*.aux
+*.gz
+Algorithms/**/*.log
+Algorithms/**/*.pdf

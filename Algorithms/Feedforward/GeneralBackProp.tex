@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage[boxruled]{algorithm2e}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+
+\begin{document}
+\thispagestyle{empty}
+
+\begin{algorithm}[H]
+    \NoCaptionOfAlgo  % Prevents printing Algorithm and its number in the caption.
+    \DontPrintSemicolon  % Don't print the semicolons.
+    \SetAlgoNoLine  % Don't print the vertical rule alongside the algorithms.
+    \SetKwProg{alg}{Procedure}{}{}
+    \SetKwFunction{main}{main}
+    \SetKwFunction{calcgradients}{calc\_gradients}
+    \SetKwComment{Comment}{// }{}
+    \SetKwComment{BlockComment}{/* }{\newline*/}
+
+    \BlankLine
+    \alg{\main{$\mathbb{T}$, $\mathcal{G}$, $z$}}{
+        \KwIn{$\mathbb{T}$, the set of variables to compute the gradients for.}
+        \KwIn{$\mathcal{G}$, the computational graph.}
+        \KwIn{$z$, the output variable to be differentiated.}
+        \KwOut{The gradient of $z$ with respect to each variable in $\mathbb{T}$.}
+        \BlankLine
+        Let $\mathcal{G}'$ be $\mathcal{G}$ pruned to contain only those nodes that are ancestors of $z$ and
+            descendants of $\mathbb{T}$. \;
+        $\mathsf{gradients}[z] \leftarrow 1$
+            \Comment*{$\mathsf{gradients}[i]$ records $\frac{\partial z}{\partial i}$}
+        \For{$\mathsf{V}$ in $\mathbb{T}$}{
+            \calcgradients{$\mathsf{V}$, $\mathcal{G}$, $\mathcal{G}'$, $\mathsf{gradients}$} \;
+        }
+        \Return{$\mathsf{gradients}[\mathbb{T}]$}
+            \Comment*{$\mathsf{gradients}[i] \; \forall i \in \mathbb{T}$}
+    }
+    \BlankLine
+    \alg{\calcgradients{$\mathsf{V}$, $\mathcal{G}$, $\mathcal{G}'$, $\mathsf{gradients}$}}{
+        \KwIn{$\mathsf{V}$, the variable that should have its gradient added to $\mathcal{G}$ and $\mathsf{gradients}$.}
+        \KwIn{$\mathcal{G}$, the full computational graph to be modified.}
+        \KwIn{$\mathcal{G}'$, the restriction of $\mathcal{G}$ to the nodes involved in computing the gradient.}
+        \KwIn{$\mathsf{gradients}$, a mapping from nodes to their gradient.}
+        \BlankLine
+        \If{$\mathsf{V}$ in $\mathsf{gradients}$}{
+            \Return{$\mathsf{gradients}[\mathsf{V}]$}
+        }
+        $\mathsf{G}_{\mathsf{V}} \leftarrow 0$
+            \Comment*{Initialise the gradient of $\mathsf{V}$}
+        \For{$\mathsf{C}$ in $\mathsf{V}.\operatorname{get\_children}(\mathcal{G}')$}{
+            \BlockComment{
+                For each child of $\mathsf{V}$, go forward through $\mathcal{G}$ until you find a defined
+                gradient, and then back-propagate until you reach $\mathsf{V}$.
+            }
+            $\mathsf{G}_{\mathsf{C}} \leftarrow$ \calcgradients{
+                    $\mathsf{C}$, $\mathcal{G}$, $\mathcal{G}'$, $\mathsf{gradients}$
+                }
+                \Comment*{$\mathsf{C}$'s gradient}
+            $op \leftarrow \mathsf{C}.\operatorname{get\_op}()$
+                \Comment*{The operation to calculate $\mathsf{C}$}
+            $\mathsf{G}_{\mathsf{V}} \leftarrow \mathsf{G}_{\mathsf{V}} + op.\operatorname{backprop}(
+                \mathsf{C}.\operatorname{get\_parents}(\mathcal{G}), \mathsf{V}, \mathsf{G}_{\mathsf{C}}
+            )$ \;
+        }
+        $\mathsf{gradients}[\mathsf{V}] \leftarrow \mathsf{G}_{\mathsf{V}}$
+            \Comment*{$\mathsf{G}_{\mathsf{V}}$ is $\mathsf{V}$'s gradient summed over all $\mathsf{C}$}
+        Insert the operations to calculate $\mathsf{G}_{\mathsf{V}}$ into $\mathcal{G}$. \;
+        \Return{$\mathsf{G}$}
+    }
+    \BlankLine
+    \caption{\textbf{The general back-propagation algorithm}}
+\end{algorithm}
+
+\end{document}

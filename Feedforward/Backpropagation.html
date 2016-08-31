@@ -54,11 +54,11 @@
                 All nodes, except input nodes, are therefore associated with an operation that computes the value
                 of the variable the node represents.
 
-                For node $i$, this operation can be represented as $f_i(\operatorname{Parents}(i))$, i.e. the operator
+                For node $i$, this operation can be represented as $f_i(\operatorname{parents}(i))$, i.e. the operator
                 $f$ associated with node $i$ applied to $i$'s parents, where the parents of
                 a node $i$ are all nodes $j$ such that there is an edge $j \to i$ in the graph.
 
-                The children $\operatorname{Children}(i)$ of $i$ can be defined similarly to be all nodes $j$ such that
+                The children $\operatorname{children}(i)$ of $i$ can be defined similarly to be all nodes $j$ such that
                 there is an edge $i \to j$ in the graph.
 
                 Some examples of computational graphs can be seen below.
@@ -90,10 +90,14 @@
                 This is done using recursive applications of the chain rule with respect to $v_n$:
                 $$
                     \frac{\partial v_n}{\partial v_j} =
-                        \sum_{i \in \operatorname{Children}(v_j)}
+                        \sum_{i \in \operatorname{children}(v_j)}
                             \frac{\partial v_n}{\partial v_i}
                             \frac{\partial v_i}{\partial v_j}
                 $$
+
+                In this context, backpropagation consists of performing a multiplication of a Jacobian matrix
+                (containing the $\partial v_i / \partial v_j$ terms) by a gradient (the $\partial v_n / \partial v_i$
+                terms) for each operation in the graph.
 
                 An example of constructing $\mathcal{B}$ from $\mathcal{G}$ can be seen below.
             </p>
@@ -123,6 +127,127 @@
         </section>
         <section>
             <h2>General Backpropagation</h2>
+            <p>
+                To compute the gradient of a scalar $z$ with respect to one of its ancestor variables $x$ in a
+                computational graph, first observe that $\frac{dz}{dz} = 1$.
+
+                Next, we can compute the gradient of $z$ with respect to each parent of $z$ in the graph by multiplying
+                the current gradient  (i.e. $\frac{dz}{dz} = 1$) by the Jacobian matrix of the operation that
+                produced $z$.
+
+                We can continue travelling backwards through the graph by multiplying the gradient by Jacobian matrices
+                until we reach $x$.
+
+                For any node $n$ between $z$ and $x$ that is reachable by two or more paths, we simply sum the gradients
+                arriving at $n$ from the different paths.
+            </p>
+            <p>
+                For maximum generality, assume that each variable in the computational graph $\mathcal{G}$ is a tensor
+                $\mathsf{V}$.
+
+                Each variable $\mathsf{V}$ is also assumed to have three methods associated with it:
+            </p>
+            <ul>
+                <li>
+                    $\operatorname{get\_op}()$ - to get the operation that computes $\mathsf{V}$.
+                </li>
+                <li>
+                    $\operatorname{get\_children}(\mathcal{G})$ - to get the children of $\mathsf{V}$ in
+                    $\mathcal{G}$, i.e. those variables $\mathsf{X}$ such that there is an edge
+                    $\mathsf{V} \to \mathsf{X}$ in $\mathcal{G}$.
+                </li>
+                <li>
+                    $\operatorname{get\_parents}(\mathcal{G})$ - to get the parents of $\mathsf{V}$ in
+                    $\mathcal{G}$, i.e. those variables $\mathsf{X}$ such that there is an edge
+                    $\mathsf{X} \to \mathsf{V}$ in $\mathcal{G}$.
+                </li>
+            </ul>
+            <p>
+                Each operation $\operatorname{op}$ is also assumed to have an associated $\operatorname{backprop}$
+                method that computes the product of a Jacobian matrix and a vector using
+                $$
+                    \begin{align}
+                    \nabla_{\mathsf{X}} z
+                    & = \sum_j \nabla_{\mathsf{X}} \mathsf{Y}_j \frac{\partial z}{\partial \mathsf{Y}_j} \\
+                    & = \mathbf{J}_{\operatorname{op}}^{\mathsf{T}} \nabla_{\mathsf{Y}} z
+                    \end{align}
+                $$
+                specifically via the summation equation in order to simplify calculations.
+
+                Each operation is therefore responsible for knowing how to backpropagate itself, thereby removing the
+                need for the backpropagation algorithm to known any rules and making the whole process more easily
+                extensible.
+
+                For example, assume that somewhere in $\mathcal{G}$ we have a node $\mathsf{C}$ that is computed
+                by multiplying two nodes $\mathsf{A}$ and $\mathsf{B}$, i.e $\mathsf{C} = \mathsf{A} \times \mathsf{B}$.
+
+                If we assume that the derivative of the scalar output $z$ with respect to $\mathsf{C}$ is $\mathsf{G}$,
+                then the $\operatorname{backprop}$ method of the multiplication operation must know to return
+                $\mathsf{B}\mathsf{G}$ if the gradient with respect to $\mathsf{A}$ is requested and
+                $\mathsf{A}\mathsf{G}$ if the gradient with respect to $\mathsf{B}$ is requested.
+
+                More formally, $\operatorname{op}.\operatorname{backprop}(\mathsf{Inp}, \mathsf{X}, \mathsf{G})$ must
+                compute
+                $$
+                    \sum_i
+                        (\nabla_{\mathsf{X}} \operatorname{op.f}(\mathsf{Inp})_i)
+                        \mathsf{G}_i
+                $$
+                with $\operatorname{op.f}$ the operation in question, $\mathsf{Inp}$ the inputs to
+                $\operatorname{op.f}$, $\mathsf{X} \in \mathsf{Inp}$ the input variable that the gradient is to be
+                computed with respect to and $\mathsf{G}$ the gradient at the output of the operation
+                (propagated back from nodes further in the computational graph).
+
+                This is simply an implementation of the chain rule and follows from
+                $$
+                    \nabla_{\mathsf{X}} z =
+                        \sum_j \nabla_{\mathsf{X}} \mathsf{Y}_j \frac{\partial z}{\partial \mathsf{Y}_j}
+                $$
+                with $\frac{\partial z}{\partial \mathsf{Y}_j} = \mathsf{G}_i$ as the gradient at the output of the
+                operation and
+                $\nabla_{\mathsf{X}} \mathsf{Y}_j = \nabla_{\mathsf{X}} \operatorname{op.f}(\mathsf{Inp})_i$ being
+                the derivative of the output of the operation with resect to the input you are interested in.
+
+                This approach therefore considers each element $i$ of the output tensor
+                $\operatorname{op.f}(\mathsf{Inp})$ in turn.
+
+                For each element, the gradient of the target variable $\mathsf{X}$ with respect to it
+                ($\nabla_{\mathsf{X}} \operatorname{op.f}(\mathsf{Inp})_i$) is multiplied by the gradient of the
+                output scalar $z$ with respect to it ($\mathsf{G}_i$).
+
+                These individual gradients for each element of the output variable are summed to get the gradient of the
+                output scalar $z$ with respect to the input variable $\mathsf{X}$.
+            </p>
+            <p>
+                The $\operatorname{op}.\operatorname{backprop}$ method should treat all inputs to $\operatorname{op.f}$
+                as if they were unique, even if they aren't.
+
+                For example, if the multiplication operation is used to calculate $\mathsf{X}^2$, then the two input
+                nodes will both be $\mathsf{X}$.
+
+                Even though both inputs will have the same value (and are the same variable) the derivative with respect
+                to any one of the nodes is $\mathsf{X}\mathsf{G}$, with $\mathsf{G}$ being the gradient at the output
+                of the operation.
+
+                If a gradient of one of $\mathsf{X}$'s ancestral nodes is needed, then the two $\mathsf{X}\mathsf{G}$
+                derivatives can be summed together to give $2\mathsf{X}\mathsf{G}$ as required.
+            </p>
+            <p>
+                An algorithm for backpropagation in a general computational graph can be seen below.
+
+                The algorithm begins by determining the subset $\mathcal{G}'$ of the computational graph $\mathcal{G}$
+                that contains nodes that are both descendants of the scalar to compute the derivative of and the
+                variables to compute the derivative with respect to.
+
+                This prevents the gradient with respect to variable $\mathsf{V}$ from being calculated by summing over
+                gradients at variables that are not along the path between $\mathsf{V}$ and the scalar, i.e. only those
+                variables between $\mathsf{V}$ and the scalar are considered when calculating the gradient at
+                $\mathsf{V}$.
+
+                For each variable, the derivative is then calculated by backpropagating and summing over the
+                derivatives of the variable's children that are along a path between it and the target scalar.
+            </p>
+            <img src="../Images/Feedforward/GeneralBackProp.png">
         </section>
         <section>
             <h2>Intuition for Neural Network Backpropagation</h2>
