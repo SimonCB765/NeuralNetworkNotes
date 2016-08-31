@@ -349,10 +349,34 @@
         </section>
         <section>
             <h2>Backpropagation in a MLP</h2>
+            <p>
+                The outline of a backpropagation algorithm for a deep neural network can be seen below.
+
+                Concentrating on the backward pass to compute gradients, we can see that there are five equations
+                that suffice to compute the gradients.
+
+                Together these comprise four equations that are needed to understand and compute gradients via
+                backpropagation:
+            </p>
+            <ol>
+                <li><b>The gradient on the output layer activation</b></li>
+                <li><b>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</b></li>
+                <li><b>The gradient of the cost with respect to a bias parameter</b></li>
+                <li><b>The gradient of the cost with respect to a weight parameter</b></li>
+            </ol>
+            <img src="../Images/Feedforward/MLPBackprop.png">
+            <h3>The gradient on the output layer activation</h3>
+            <p></p>
+            <h3>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</h3>
+            <p></p>
+            <h3>The gradient of the cost with respect to a bias parameter</h3>
+            <p></p>
+            <h3>The gradient of the cost with respect to a weight parameter</h3>
+            <p></p>
         </section>
 
 
-
+    <br><br><br><br>
 
     <p>
         Commonly, neural networks are trained via stochastic gradient descent (SGD) using mini-batches, or one of its

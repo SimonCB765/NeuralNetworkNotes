@@ -1,0 +1,66 @@
+\documentclass{article}
+\usepackage[boxruled]{algorithm2e}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+
+\begin{document}
+\thispagestyle{empty}
+
+\IncMargin{1em}
+\begin{algorithm}[H]
+    \NoCaptionOfAlgo  % Prevents printing Algorithm and its number in the caption.
+    \DontPrintSemicolon  % Don't print the semicolons.
+    \SetAlgoNoLine  % Don't print the vertical rule alongside the algorithms.
+    \SetKwComment{Comment}{// }{}
+    \SetKwComment{BlockComment}{/* }{\newline*/}
+
+    \BlankLine
+    \Indm
+    \KwIn{$L$, the maximum depth of the network.}
+    \KwIn{$\mathbb{W}$, the set of weight matrices $W^l \; \forall i \in \{1, \ldots, L\}$.}
+    \KwIn{$\mathbb{B}$, the set of bias vectors $\mathbf{b}^l \; \forall i \in \{1, \ldots, L\}$.}
+    \KwIn{$\mathbf{x}$, an input example.}
+    \KwIn{$\mathbf{y}$, the target output for $\mathbf{x}$.}
+
+    \BlankLine\BlankLine
+
+    \Indp
+    \textbf{Forward Pass:} Compute the activations $\mathbf{a}^l$ for each layer in the network. \;
+    $\mathbf{h}^0 = \mathbf{x}$
+        \Comment*{output of first layer is the input}
+    \For{$k = 1, \ldots, L$}{
+        $\mathbf{a}^k = \mathbf{b}^k + W^k \mathbf{h}^{k-1}$
+            \Comment*{the activation of the layer}
+        $\mathbf{h}^k = f(\mathbf{a}^k)$
+            \Comment*{the output of the layer}
+    }
+    $\hat{\mathbf{y}} = \mathbf{h}^L$
+        \Comment*{prediction is output of the final layer}
+    $\mathcal{J} = \mathcal{L}(\hat{\mathbf{y}}, \mathbf{y}) + \lambda\Omega(\theta)$
+
+    \BlankLine\BlankLine
+
+    \textbf{Backward Pass:} Compute the derivatives of $\mathcal{J}$ with respect to the activations $\mathbf{a}^l$
+        (using elementwise multiplication $\odot$ if $f$ is elementwise). \;
+    \nl $\mathbf{g} \leftarrow \nabla_{\hat{\mathbf{y}}} \mathcal{J} =
+        \nabla_{\hat{\mathbf{y}}} \mathcal{L}(\hat{\mathbf{y}}, \mathbf{y})$
+        \Comment*{gradient on the output layer}
+    \For{$k = L, L-1, \ldots, 1$}{
+        Convert the gradient on layer $k$'s output (i.e. $\mathbf{h}^k$) into a gradient on
+            its input (i.e. $\mathbf{a}^k$). \;
+        \nl $\mathbf{g} \leftarrow \nabla_{\mathbf{a}^k} \mathcal{J} = \mathbf{g} \odot f'(\mathbf{a}^k)$
+            \Comment*{gradient on the activation}
+        Compute gradients for the weights and biases (including regularisation term if needed) \;
+        \nl $\nabla_{\mathbf{b}^k} \mathcal{J} = \mathbf{g} + \lambda \nabla_{\mathbf{b}^k} \Omega(\theta)$ \;
+        \nl $\nabla_{\mathbf{W}^k} \mathcal{J} = \mathbf{g} (\mathbf{h}^{k+1})^{\mathsf{T}} +
+            \lambda \nabla_{\mathbf{b}^k} \Omega(\theta)$ \;
+        Propagate the gradients with respect to the activation's of the next lower hidden layer \;
+        \nl $\mathbf{g} \leftarrow \nabla_{\mathbf{h}^{k-1}} \mathcal{J} = (W^l)^\mathsf{T} \mathbf{g}$
+    }
+    \BlankLine
+    \caption{\textbf{Backpropagation in a deep neural network. The forward pass computes the needed activations,
+        i.e. $\mathbf{a}^l$, while the backward pass computes the gradients at the activations.}}
+\end{algorithm}
+\DecMargin{1em}
+
+\end{document}
