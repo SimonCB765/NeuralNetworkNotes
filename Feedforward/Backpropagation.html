@@ -621,6 +621,9 @@
                 $$
                 assuming $\mathbf{a}^l \in \mathbb{R}^m$ and $\mathbf{a}^{l-1} \in \mathbb{R}^n$, i.e. there are
                 $n$ neurons in layer $l-1$ and $m$ in layer $l$.
+
+                Intuitively, if we think of $W^l$ taking the signal from layer $l-1$ and propagating it to layer $l$,
+                then $(W^l)^{\mathsf{T}}$ can be thought of as propagating the signal backwards from $l-1$ to $l$.
             </p>
         </section>
         <section id="BackpropTrainingExample">
