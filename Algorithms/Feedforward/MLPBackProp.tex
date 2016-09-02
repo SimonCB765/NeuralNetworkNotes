@@ -47,13 +47,14 @@
         \Comment*{gradient on the output layer}
     \For{$k = L, L-1, \ldots, 1$}{
         Convert the gradient on layer $k$'s output (i.e. $\mathbf{h}^k$) into a gradient on
-            its input (i.e. $\mathbf{a}^k$). \;
+            its input (i.e. $\mathbf{a}^k$), often called $\delta^k$. \;
         \nl $\mathbf{g} \leftarrow \nabla_{\mathbf{a}^k} \mathcal{J} = \mathbf{g} \odot f'(\mathbf{a}^k)$
             \Comment*{gradient on the activation}
         Compute gradients for the weights and biases (including regularisation term if needed) \;
         \nl $\nabla_{\mathbf{b}^k} \mathcal{J} = \mathbf{g} + \lambda \nabla_{\mathbf{b}^k} \Omega(\theta)$ \;
-        \nl $\nabla_{\mathbf{W}^k} \mathcal{J} = \mathbf{g} (\mathbf{h}^{k+1})^{\mathsf{T}} +
-            \lambda \nabla_{\mathbf{b}^k} \Omega(\theta)$ \;
+        \nl $\nabla_{W^k} \mathcal{J} = \mathbf{g} (\mathbf{h}^{k-1})^{\mathsf{T}} +
+            \lambda \nabla_{\mathbf{b}^k} \Omega(\theta)$
+            \Comment*{matrix of derivatives}
         Propagate the gradients with respect to the activation's of the next lower hidden layer \;
         \nl $\mathbf{g} \leftarrow \nabla_{\mathbf{h}^{k-1}} \mathcal{J} = (W^l)^\mathsf{T} \mathbf{g}$
     }

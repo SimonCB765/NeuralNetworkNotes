@@ -352,6 +352,13 @@
             <p>
                 The outline of a backpropagation algorithm for a deep neural network can be seen below.
 
+                The symbol $\odot$ in the algorithm is the elementwise Hadamard or Schur product, e.g.
+                $(1, 2)^{\mathsf{T}} \odot (3, 4)^{\mathsf{T}} = (1 * 3, 2 * 4)^{\mathsf{T}} = (3, 8)^{\mathsf{T}}$.
+
+                For both passes the loops are over layers $1, \ldots, L$.
+
+                This is because layer 0 is the input layer, and we don't need to compute outputs or gradients for it.
+
                 Concentrating on the backward pass to compute gradients, we can see that there are five equations
                 that suffice to compute the gradients.
 
@@ -359,64 +366,278 @@
                 backpropagation:
             </p>
             <ol>
-                <li><b>The gradient on the output layer activation</b></li>
-                <li><b>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</b></li>
+                <li><b>The gradient on the output layer's activation</b></li>
                 <li><b>The gradient of the cost with respect to a bias parameter</b></li>
                 <li><b>The gradient of the cost with respect to a weight parameter</b></li>
+                <li><b>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</b></li>
             </ol>
             <img src="../Images/Feedforward/MLPBackprop.png">
-            <h3>The gradient on the output layer activation</h3>
-            <p></p>
-            <h3>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</h3>
-            <p></p>
+            <h3>The gradient on the output layer's activation</h3>
+            <p>
+                The gradient on the output layer's activation is computed via equations $1$ and the first pass of $2$
+                in the algorithm.
+
+                From $1$ we have that the gradient of the cost with respect to the output of layer $L$.
+
+                This is simply the loss portion of the cost, as
+                $\frac{\partial \mathcal{J}}{\partial \hat{\mathbf{y}}_i}$ will simply be
+                $\frac{\partial \mathcal{L}}{\partial \hat{\mathbf{y}}_i}$ as the regularisation term does not involve
+                $\hat{\mathbf{y}}$.
+
+                Applying $2$ then gives us the gradient of the cost with respect to the activations of layer $L$'s
+                neurons, i.e. $\nabla_{\mathbf{a}^L} \mathcal{J}$.
+
+                Combined, these compute the gradient by multiplying the gradient at the outputs of layer $L$'s neurons
+                ($\nabla_{\mathbf{h}^L} \mathcal{J}$) by the derivative of the output layer's activation function.
+
+                This propagates the gradient backwards through the neuron from the output to the input ends of it.
+
+                Intuitively, $\nabla_{\mathbf{h}^L} \mathcal{J}$ tells us how the cost depends on the output of layer
+                $L$, while $f'(\mathbf{a}^L)$ tells us how fast the activation function is changing at $\mathbf{a}^L$.
+
+                A small value for an element $i$ in either $\nabla_{\mathbf{h}^L} \mathcal{J}$ or $f'(\mathbf{a}^L)$
+                will cause $\mathbf{g}_i$ to have a small value, thereby indicating that changes to the weights entering
+                neurons in layer $L$ will not have much affect on the cost through neuron $i$.
+            </p>
             <h3>The gradient of the cost with respect to a bias parameter</h3>
-            <p></p>
+            <p>
+                Equation $3$ in the algorithm is used to compute the gradient of the cost with respect to bias
+                parameters that feed into neurons in layer $l$.
+
+                This is equal to the gradient on the activations of the neurons that the biases feed into plus the
+                derivative of the regularisation term with respect to the bias parameters.
+
+                The regularisation term appears here as it acts on parameters (biases and weights) not on activations.
+
+                There are therefore essentially two sets of paths through the computational graph that represents the
+                neural network: one through the activations and the loss function $\mathcal{L}$ and another through the
+                regularisation term.
+
+                This path through the regularisation term is only relevant to the bias and weight parameters, as can be
+                seen from the <a href="#BackpropTrainingExample">training</a> example.
+
+                The equivalence of the gradients of $\mathbf{a}^l$ and $\mathbf{b}^l$ (ignoring the regularisation
+                term and considering only one neuron in layer $l$) can be seen as
+                $$
+                    \frac{\partial \mathcal{J}}{\partial \mathbf{b}^l_j} =
+                        \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l_j}
+                        \frac{\partial \mathbf{a}^l_j}{\partial \mathbf{b}^l_j}
+                $$
+
+                As $\mathbf{a}^l = \mathbf{b}^l + W^l \mathbf{h}^{l-1}$, the derivative of $\mathbf{a}^l$ with respect
+                to $\mathbf{b}^l$ is 1, and
+                $\frac{\partial \mathcal{J}}{\partial \mathbf{b}^l} =
+                \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l}$.
+
+                Therefore we have
+                $$\nabla_{\mathbf{b}^l} \mathcal{J} = \nabla_{\mathbf{a}^l} \mathcal{J}$$
+            </p>
             <h3>The gradient of the cost with respect to a weight parameter</h3>
-            <p></p>
+            <p>
+                Equation $4$ in the algorithm allows us to calculate the gradient of the cost with respect to the
+                weight parameters that feed into neurons in layer $l$ of the network.
+
+                The result of this is a matrix of partial derivatives $\nabla_{W^l} \mathcal{J}$ with each row $j$
+                containing $(\nabla_{W^l_j} \mathcal{J})^{\mathsf{T}}$, the derivatives of the cost with respect to the
+                weight parameters that feed into node $j$ in layer $l$.
+
+                The regularisation term appears in the equation for calculating these derivatives for the same reasons
+                as it does for the bias parameter.
+
+                Given that $\frac{\partial \mathcal{J}}{\partial \mathbf{a}^l} = \mathbf{g}$ and
+                $\mathbf{a}^l = \mathbf{b}^l + W^l \mathbf{h}^{l-1}$, we can derive equation $4$ (ignoring the
+                regularisation term) by finding the derivative of the cost with respect to an individual weight
+                $W^l_ji$.
+
+                As weight $W^l_ji$ goes from neuron $i$ in layer $l-1$ to neuron $j$ in layer $l$, we have:
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial W^l_{ji}}
+                        & = \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l_j}
+                            \frac{\partial \mathbf{a}^l_j}{\partial W^l_ji} \\
+                        & = \mathbf{g_j} \frac{\partial \mathbf{a}^l_j}{\partial W^l_{ji}}
+                    \end{align}
+                $$
+
+                Given $\mathbf{a}^l = \mathbf{b}^l + W^l \mathbf{h}^{l-1}$, we can break this down into the elements
+                of $\mathbf{a}^l$ as $\mathbf{a}^l_j = \sum_i \mathbf{b}^l_j + W^l_{ji} \mathbf{h}^{l-1}_i$
+                giving
+                $\frac{\partial \mathbf{a}^l_j}{\partial W^l_{ji}} = \mathbf{h}^{l-1}_i$.
+
+                Therefore,
+                $$\frac{\partial \mathcal{J}}{\partial W^l_{ji}} = \mathbf{g_j} \mathbf{h}^{l-1}_i$$
+
+                Expanding this out into a matrix gives
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial W^l}
+                        & = \begin{bmatrix}
+                                \mathbf{g}_1 \mathbf{h}^{l-1}_1 & \ldots & \mathbf{g}_1 \mathbf{h}^{l-1}_m \\
+                                \vdots & \ddots & \vdots \\
+                                \mathbf{g}_n \mathbf{h}^{l-1}_1 & \ldots & \mathbf{g}_n \mathbf{h}^{l-1}_m
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix} \mathbf{g}_1 \\ \vdots \\ \mathbf{g}_n \end{bmatrix}
+                            \begin{bmatrix} \mathbf{h}^{l-1}_1, \ldots, \mathbf{h}^{l-1}_m \end{bmatrix} \\
+                        & = \mathbf{g} (\mathbf{h}^{l-1})^{\mathsf{T}}
+                    \end{align}
+                $$
+
+                Equally this could be arrived at by noting that when derivating $\mathcal{J}$ with respect to a matrix
+                $W^l$ the result is a matrix of partial derivatives
+                $$
+                    \begin{align}
+                    \frac{\partial \mathcal{J}}{\partial W^l}
+                    & = \begin{bmatrix}
+                        \frac{\partial \mathcal{J}}{\partial W^l_{11}} &
+                            \ldots &
+                            \frac{\partial \mathcal{J}}{\partial W^l_{1m}} \\
+                        \vdots & \ddots & \vdots\\
+                        \frac{\partial \mathcal{J}}{\partial W^l_{n1}} &
+                            \ldots &
+                            \frac{\partial \mathcal{J}}{\partial W^l_{nm}} \\
+                        \end{bmatrix}
+                    \end{align}
+                $$
+                assuming $\mathbf{h}^l \in \mathbb{R}^m$ and $\mathbf{h}^{l-1} \in \mathbb{R}^n$, i.e. there are
+                $n$ neurons in layer $l-1$ and $m$ in layer $l$.
+
+                Either approach gives an $\mathsf{n} \times \mathsf{m}$ matrix, which is the same dimension-wise as
+                $W^l$ when layer $l$ has $n$ neurons and layer $l-1$ has $m$.
+
+                This also indicates how the derivative of the cost with respect to a weight parameter can be
+                interpreted.
+
+                For weight $W^l_{ji}$ from neuron $i$ in layer $l-1$ to neuron $j$ in layer $l$, we have the
+                gradient at the input to neuron $j$ (the end of the weight) as $\mathbf{g}_j$ and the output
+                from neuron $i$ (the start of the weight) as $\mathbf{h}^{l-1}_i$.
+
+                The gradient of the cost with respect to this parameter can then be read out from the
+                $\nabla_{W^l} \mathcal{J}$ matrix as
+                $(\nabla_{W^l} \mathcal{J})_{ji} = \mathbf{g}_j \mathbf{h}^{l-1}_i$.
+
+                This indicates that if the gradient at the input to neuron $j$ is small (and therefore has minimal
+                impact on the cost) or the output of neuron $i$ is small, the gradient of the cost with respect to
+                the weight will be small.
+
+                The weight therefore has little impact on the cost, and so will learn slowly.
+            </p>
+            <h3>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</h3>
+            <p>
+                The gradient on the activation of layer $l-1$ with respect to that of layer $l$ is computed via
+                equation $5$ and then equation $2$ on the next pass.
+
+                Combined, these make the gradient for layer $l-1$ equal to
+                $(W^l)^\mathsf{T} \mathbf{g} \odot f'(\mathbf{a}^{l-1})$.
+
+                In order to derive this we need to write the derivative of $\mathbf{a}^{l-1}$ in terms of
+                $\mathbf{a}^l$.
+
+                Taking the same approach as above and considering each neuron in $\mathbf{a}^{l-1}$ individually,
+                we need to compute (ignoring the regularisation term again):
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1}_i}
+                        & = \sum_j
+                                \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l_j}
+                                \frac{\partial \mathbf{a}^l_j}{\partial \mathbf{a}^{l-1}_i} \\
+                        & = \sum_j
+                                \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l_j}
+                                \frac{\partial \mathbf{a}^l_j}{\partial \mathbf{h}^{l-1}_i}
+                                \frac{\partial \mathbf{h}^{l-1}_i}{\partial \mathbf{a}^{l-1}_i}
+                    \end{align}
+                $$
+                with the $sum_j$ necessary as there are $j$ ways for the derivative to propagate from layer $l$ to
+                layer $l-1$, assuming there are $j$ neurons in layer $l$.
+
+                As $\mathbf{a}^l = \mathbf{b}^l + W^l \mathbf{h}^{l-1}$ and $\mathbf{h}^{l-1} = f(\mathbf{a}^{l-1})$,
+                we have
+                $$
+                    \begin{align}
+                        \mathbf{a}^l_j & = \mathbf{b}^l_j + \sum_i W^l_{ji} \mathbf{h}^{l-1}_i \\
+                        & = \mathbf{b}^l_j + \sum_i W^l_{ji} f(\mathbf{a}^{l-1}_i)
+                    \end{align}
+                $$
+                and therefore
+                $$\frac{\partial \mathbf{a}^l_j}{\partial \mathbf{a}^{l-1}_i} = W^l_{ji} f'(\mathbf{a}^{l-1}_i)$$
+
+                Plugging this in gives:
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1}_i}
+                        & = \sum_j
+                                \frac{\partial \mathcal{J}}{\partial \mathbf{a}^l_j}
+                                \frac{\partial \mathbf{a}^l_j}{\partial \mathbf{h}^{l-1}_i}
+                                \frac{\partial \mathbf{h}^{l-1}_i}{\partial \mathbf{a}^{l-1}_i} \\
+                        & = \sum_j \mathbf{g}_j W^l_{ji} f'(\mathbf{a}^{l-1}_i)
+                    \end{align}
+                $$
+
+                Composing all the $\frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1}_i}$ terms as
+                a single vector gives:
+                $$
+                    \begin{align}
+                        \nabla_{\mathbf{a}^{l-1}} \mathcal{J}
+                        & = \begin{bmatrix}
+                                \sum_j \mathbf{g}_j W^l_{j1} f'(\mathbf{a}^{l-1}_1) \\
+                                \vdots \\
+                                \sum_j \mathbf{g}_j W^l_{jn} f'(\mathbf{a}^{l-1}_n)
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                                \mathbf{g}_1 W^l_{11} f'(\mathbf{a}^{l-1}_1)
+                                    & + & \ldots
+                                    & + & \mathbf{g}_m W^l_{m1} f'(\mathbf{a}^{l-1}_1) \\
+                                \vdots & & \ldots & & \vdots \\
+                                \mathbf{g}_1 W^l_{1n} f'(\mathbf{a}^{l-1}_n)
+                                    & + & \ldots
+                                    & + & \mathbf{g}_m W^l_{mn} f'(\mathbf{a}^{l-1}_n)
+                            \end{bmatrix} \\
+                        & = \left(
+                            \begin{bmatrix}
+                                \mathbf{g}_1 W^l_{11} & + & \ldots & + & \mathbf{g}_m W^l_{m1} \\
+                                \vdots & & \dots & & \vdots \\
+                                \mathbf{g}_1 W^l_{1n} & + & \ldots & + & \mathbf{g}_m W^l_{mn}
+                            \end{bmatrix}
+                            \right)
+                            \odot
+                            \begin{bmatrix}
+                                f'(\mathbf{a}^{l-1}_1) \\ \vdots \\ f'(\mathbf{a}^{l-1}_n)
+                            \end{bmatrix} \\
+                        & = \left(
+                            \begin{bmatrix}
+                                W^l_{11} & \ldots & W^l_{m1} \\
+                                \vdots & \ldots & \vdots \\
+                                W^l_{1n} & \ldots & W^l_{mn}
+                            \end{bmatrix}
+                            \begin{bmatrix}
+                                \mathbf{g}_1 \\ \vdots \\ \mathbf{g}_m
+                            \end{bmatrix}
+                            \right)
+                            \odot
+                            \begin{bmatrix}
+                                f'(\mathbf{a}^{l-1}_1) \\ \vdots \\ f'(\mathbf{a}^{l-1}_n)
+                            \end{bmatrix} \\
+                        & = (W^l)^{\mathsf{T}} \mathbf{g} \odot f'(\mathbf{a}^{l-1})
+                    \end{align}
+                $$
+                assuming $\mathbf{a}^l \in \mathbb{R}^m$ and $\mathbf{a}^{l-1} \in \mathbb{R}^n$, i.e. there are
+                $n$ neurons in layer $l-1$ and $m$ in layer $l$.
+            </p>
         </section>
-
-
-    <br><br><br><br>
-
-    <p>
-        Commonly, neural networks are trained via stochastic gradient descent (SGD) using mini-batches, or one of its
-        many variants. With a batch size of one, the SGD update rule is
-        $$\mathbf{w} \leftarrow \mathbf{w} - \eta\nabla_{w}F_i$$
-        where $\eta$ is the learning rate and $\nabla_{w}F_i$ the gradient of the objective function with respect to
-        the parameters $\mathbf{w}$ as calculated on a single example $(x_i, y_i)$. The learning rate can be fixed, as
-        in vanilla SGD, or adaptively tuned, as in the popular variants
-        <a href="../General/Optimisation.html#AdaGrad">AdaGrad</a>,
-        <a href="../General/Optimisation.html#AdaDelta">AdaDelta</a>,
-        <a href="../General/Optimisation.html#RMSprop">RMSprop</a> and
-        <a href="../General/Optimisation.html#Adam">Adam</a>.
-    </p>
-    <p>
-        To calculate the gradient in a feedforward network, backpropagation proceeds through a forward and backward
-        pass. In the forward pass an example (or mini-batch) is propogated through the network to produce a value
-        $v_j$ at each node and outputs $\hat{\mathbf{y}}$ at the final/top layer. Next the loss
-        $\mathcal{L}(\hat{y}_k, y_k)$ is calcualted at each output node $k$. For each output node $k$ we then calculate
-        $$\delta_k = \frac{\partial \mathcal{L}(\hat{y}_k, y_k)}{\partial \hat{y}_k} \cdot l'_k(a_k).$$
-        Given the $\delta_j$ values for each node in the layer following/above node $i$ such that tere is an edge from
-        $i$ to $j$, we calculate
-        $$\delta_i = l'_i(a_i) \sum_{j} \delta_j \cdot w_{ji}.$$
-        Each value $\delta_i$ represents the derivative $\partial \mathcal{L} / \partial a_i$ of the total loss of the
-        network with respect to node $i$'s incoming activation. Given the values $v_i$ calcualted during the forward
-        pass and the values $\delta_j$ calculated during the backward pass, the derivative of the loss function
-        $\mathcal{L}$ with resect to the weight parameter $w_{ji}$ is
-        $$\frac{\partial \mathcal{L}}{\partial w_{ji}} = \delta_j v_i.$$
-    </p>
-    <p>Uncited References:</p>
-    <ul>
-        <li>
-            <a href="../References.html#NNOnlineBook">
-                Neural Networks and Deep Learning
-            </a>
-        </li>
-        <li>
-            <a href="../References.html#DeepLearningBook">
-                Deep Learning
-            </a>
-        </li>
-    </ul>
+        <section id="BackpropTrainingExample">
+            <h2>Backpropagation Training Example</h2>
+        </section>
+        <p>Uncited References:</p>
+        <ul>
+            <li>
+                <a href="../References.html#NNOnlineBook">
+                    Neural Networks and Deep Learning
+                </a>
+            </li>
+            <li>
+                <a href="../References.html#DeepLearningBook">
+                    Deep Learning
+                </a>
+            </li>
+        </ul>
     </body>
 </html>
