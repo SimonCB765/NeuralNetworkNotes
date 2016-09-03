@@ -628,6 +628,78 @@
         </section>
         <section id="BackpropTrainingExample">
             <h2>Backpropagation Training Example</h2>
+            <p>
+                Below is the computational graph for a MLP with a single hidden layer.
+
+                This network will be trained using minibatch stochastic gradient descent with training set $X$ and
+                target vector $\mathbf{y}$.
+
+                The hidden layer consists of ReLU units with $H = max(0, X W^1)$.
+
+                The predictions of the unnormalised log probabilities over the classes are given by $H W^2$.
+
+                Cross-entropy is calculated between the unnormalised log probabilities and the target vector
+                $\mathbf{y}$.
+
+                The give $\mathcal{J}_{MLE}$, the minimisation of which performs maximum likelihood estimation on the
+                classifier.
+
+                The overall cost function also incorporates a regularisation weight decay term (L2 regularisation),
+                and is computed as:
+                $$
+                    \mathcal{J} =
+                        \mathcal{J}_{MLE} + \lambda \left( \sum_{i,j} (W^1_{i,j})^2 + \sum_{i,j} (W^2_{i,j})^2 \right)
+                $$
+                where $\lambda$ is the coefficient of regularisation.
+            </p>
+            <img src="../Images/Feedforward/NetworkBackprop.png">
+            <p>
+                To train we need to compute both $\nabla_{W^1} \mathcal{J}$ and $\nabla_{W^2} \mathcal{J}$.
+
+                Two different paths from $\mathcal{J}$ can be followed to get to either of the weight matrices in the
+                graph: one through the cross-entropy and one through the regularisation term.
+
+                The path through the regularisation term to a weight matrix $W^i$ is simply $2\lambda W^i$ as
+                $\frac{\partial \mathcal{J}}{\partial W^i}$ is
+                $$
+                    \frac{\partial \left( \lambda \sum_{j,k} (W^i_{j,k})^2 \right)}{\partial W^i}
+                $$
+
+                The path through the cross-entropy is marginally more difficult.
+
+                Let $G$ be the gradient on the unnormalised log probabilities $A^2$ after backpropagating through the
+                cross-entropy function.
+
+                There are now two branches to explore, a short one leading to $W^2$ and a long one leading to $W^1$.
+
+                First observe that when backpropagating through a matrix multiplication $C = AB$, with
+                $\frac{\partial \mathcal{J}}{\partial C}$ being the gradient on $C$, the derivative with respect to $A$
+                is $\frac{\partial \mathcal{J}}{\partial C} B^{\mathsf{T}}$ and with respect to $B$ is
+                $A^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial C}$.
+
+                Therefore, the derivative along the shorter branch, i.e. $\frac{\partial \mathcal{J}}{\partial W^2}$
+                ignoring the regularisation term, is $H^{\mathsf{T}} G$.
+
+                This is then added to the derivative through the regularisation term to get the total derivative.
+
+                Along the longer branch to $W^1$ we first calculate $\nabla_{H} \mathcal{J} = G (W^2)^{\mathsf{T}}$.
+
+                Next, the ReLU operation uses its backpropagation rule to zero out components of the gradient
+                corresponding to entries in $A^1$ that are less than zero (as these would have zero gradient
+                according to the ReLU function), giving $G'$.
+
+                Finally, the backpropagation rule concerning the second argument to a matrix multiplicaton is used
+                to get
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial W^1}
+                        & = \frac{\partial \mathcal{J}}{\partial A^1} \frac{\partial A^1}{\partial W^1} \\
+                        & = X^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial A^1} \\
+                        & = X^{\mathsf{T}} G'
+                    \end{align}
+                $$
+                which is added to the derivative through the regularisation term to get the final derivative.
+            </p>
         </section>
         <p>Uncited References:</p>
         <ul>
