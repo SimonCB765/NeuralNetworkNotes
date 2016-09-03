@@ -372,6 +372,108 @@
                 <li><b>The gradient on the activation of layer $l-1$ with respect to that of layer $l$</b></li>
             </ol>
             <img src="../Images/Feedforward/MLPBackprop.png">
+            <p>
+                One useful identity to know beforehand is the result of backpropagating through a matrix multiplication,
+                as this informs the resulting equations in points 2 and 3.
+
+                Given a matrix multiplication $C = AB$ with $A \in \mathbb{R}^{np}$, $B \in \mathbb{R}^{pm}$,
+                $C \in \mathbb{R}^{nm}$ and $\frac{\partial \mathcal{J}}{\partial C} = G \in \mathbb{R}^{nm}$
+                being the gradient on $C$, backpropagating $G$ through $C$ with respect to $A$ gives
+                $G B^{\mathsf{T}}$ and with respect to $B$ gives $A^{\mathsf{T}} G$.
+
+                In this case $C$ could be a matrix (including a vector) or a scalar (if $A$ and $B$ are a row and
+                column vector respectively), but all are assumed to be matrices for generality (meaning $G$ is also a
+                matrix).
+
+                This can be seen as:
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial A}
+                        & = \begin{bmatrix}
+                            \frac{\partial \mathcal{J}}{\partial A_{11}} &
+                                \ldots &
+                                \frac{\partial \mathcal{J}}{\partial A_{1p}} \\
+                            \vdots & \ddots & \vdots \\
+                            \frac{\partial \mathcal{J}}{\partial A_{n1}} &
+                                \ldots &
+                                \frac{\partial \mathcal{J}}{\partial A_{np}}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            \sum_{j = 1 \ldots m} \frac{\partial \mathcal{J}}{\partial C_{1j}} \frac{\partial C_{1j}}{\partial A_{11}} &
+                                \ldots &
+                                \sum_{j = 1 \ldots m} \frac{\partial \mathcal{J}}{\partial C_{1j}} \frac{\partial C_{1j}}{\partial A_{1p}} \\
+                            \vdots & \ddots & \vdots \\
+                            \sum_{j = 1 \ldots m} \frac{\partial \mathcal{J}}{\partial C_{nj}} \frac{\partial C_{nj}}{\partial A_{n1}} &
+                                \ldots &
+                                \sum_{j = 1 \ldots m} \frac{\partial \mathcal{J}}{\partial C_{nj}} \frac{\partial C_{nj}}{\partial A_{np}}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            G_{11} B_{11} + G_{12} B_{12} + \ldots + G_{1m} B_{1m} &
+                                \ldots &
+                                G_{11} B_{p1} + G_{12} B_{p2} + \ldots + G_{1m} B_{pm} \\
+                            \vdots & \ddots & \vdots \\
+                            G_{n1} B_{11} + G_{n2} B_{12} + \ldots + G_{nm} B_{1m} &
+                                \ldots &
+                                G_{n1} B_{p1} + G_{n2} B_{p2} + \ldots + G_{nm} B_{pm}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                                G_{11} & \ldots & G_{1m} \\
+                                \vdots & \ddots & \vdots \\
+                                G_{n1} & \ldots & G_{nm}
+                            \end{bmatrix}
+                            \begin{bmatrix}
+                                B_{11} & \ldots & B_{p1} \\
+                                \vdots & \ddots & \vdots \\
+                                B_{1m} & \ldots & B_{pm}
+                            \end{bmatrix} \\
+                        & = G B^{\mathsf{T}}
+                    \end{align}
+                $$
+
+                Similarly
+                $$
+                    \begin{align}
+                        \frac{\partial \mathcal{J}}{\partial B}
+                        & = \begin{bmatrix}
+                            \frac{\partial \mathcal{J}}{\partial B_{11}} &
+                                \ldots &
+                                \frac{\partial \mathcal{J}}{\partial B_{1m}} \\
+                            \vdots & \ddots & \vdots \\
+                            \frac{\partial \mathcal{J}}{\partial B_{p1}} &
+                                \ldots &
+                                \frac{\partial \mathcal{J}}{\partial B_{pm}}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            \sum_{i = 1 \ldots n} \frac{\partial \mathcal{J}}{\partial C_{i1}} \frac{\partial C_{i1}}{\partial B_{11}} &
+                                \ldots &
+                                \sum_{i = 1 \ldots n} \frac{\partial \mathcal{J}}{\partial C_{i1}} \frac{\partial C_{i1}}{\partial B_{1m}} \\
+                            \vdots & \ddots & \vdots \\
+                            \sum_{i = 1 \ldots n} \frac{\partial \mathcal{J}}{\partial C_{im}} \frac{\partial C_{im}}{\partial B_{p1}} &
+                                \ldots &
+                                \sum_{i = 1 \ldots n} \frac{\partial \mathcal{J}}{\partial C_{im}} \frac{\partial C_{im}}{\partial B_{pm}}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                            G_{11} A_{11} + G_{21} A_{21} + \ldots + G_{n1} A_{n1} &
+                                \ldots &
+                                G_{11} A_{11} + G_{21} A_{21} + \ldots + G_{n1} A_{n1} \\
+                            \vdots & \ddots & \vdots \\
+                            G_{1m} A_{1p} + G_{2m} A_{2p} + \ldots + G_{nm} A_{np} &
+                                \ldots &
+                                G_{1m} A_{1p} + G_{2m} A_{2p} + \ldots + G_{nm} A_{np}
+                            \end{bmatrix} \\
+                        & = \begin{bmatrix}
+                                A_{11} & \ldots & A_{n1} \\
+                                \vdots & \ddots & \vdots \\
+                                A_{1p} & \ldots & A_{np}
+                            \end{bmatrix}\begin{bmatrix}
+                                G_{11} & \ldots & G_{1m} \\
+                                \vdots & \ddots & \vdots \\
+                                G_{n1} & \ldots & G_{nm}
+                            \end{bmatrix} \\
+                        & = A^{\mathsf{T}} G
+                    \end{align}
+                $$
+            </p>
             <h3>The gradient on the output layer's activation</h3>
             <p>
                 The gradient on the output layer's activation is computed via equations $1$ and the first pass of $2$
