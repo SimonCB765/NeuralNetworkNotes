@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>RNN Training</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <section>
+            <h2>Backpropagation Through Time</h2>
+            <p>
+                The forward pass in a RNN with a single (recurrent) hidden layer is the same as that of a multilayer
+                perceptron with a single hidden layer, except that activations arrive at the hidden layer of the RNN
+                from both in the input and the previous timestep's hidden layer. Consider an input sequence $\mathbf{x}$
+                of length $T$ provided to a RNN with $I$ nodes in its first (input) layer, $H$ nodes in its hidden layer
+                and $K$ in its output layer. Let $\mathbf{x}^{(t)}_i$ be the $i$th element of the input vector at
+                timestep $t$, and $\mathbf{a}^{(t)}_j$ and $\mathbf{h}^{(t)}_j$ be the activation and output of node
+                $j$ in the hidden layer at time $t$. Then we have:
+                $$
+                    \mathbf{a}^{(t)}_j = \sum^I_{i} W_{ji} \mathbf{x}^{(t)}_i + \sum^H_{h} W_{jh} \mathbf{h}^{(t-1)}_{h} \\
+                    \mathbf{h}^{(t)}_j = f_{j}(\mathbf{a}^{(t)}_j)
+                $$
+                The complete sequence of activations and outputs of the hidden nodes can then be calculated by
+                repeatedly applying the equations starting with $t=1$ and continuing until $t=T$. This requires that
+                $\mathbf{h}^{(0)}$, i.e. the output or state of the hidden layer's nodes before ay input is received.
+                This can be done by initialising all values to 0, but the stability and performance of the RNN can
+                potentially be improved through using nonzero initial values.
+            </p>
+            <p>
+                The backwards pass in a RNN is gnerally handled using an approach called backpropagation through time
+                (BPTT). Like standard backpropagation, BPTT reies on repeated applications of the chain rule. However,
+                the cost function depends on the nodes in the hidden layer not only through its influence on the output
+                layer, but also through its influence on the hidden layer of the next timestep. Therefore,
+                $$
+                    \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{(t)}_j} =
+                    \delta^{(t)}_j =
+                    f'_j(\mathbf{a}^{(t)}_j)
+                        \left( \sum^K_k \delta^{(t)}_k W_{kj} + \sum^H_{h} \delta^{(t+1)}_{h} W_{hj} \right)
+                $$
+                The complete sequence of $\delta$ terms can be calculated by starting with $t=T$ and applying the
+                equation until $t=1$ (noting that $\delta^{(T+1)}_j=0 \; \forall j$ since no error can be received from
+                beyond the end of the sequence). Given that the same weights are used at every timestep, we sum over
+                the entire sequence to get the derivatives with respect to the network weights:
+                $$
+                    \frac{\partial \mathcal{J}}{\partial W_{ji}} =
+                    \sum^T_t \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{(t)}_j}
+                        \frac{\partial \mathbf{a}^{(t)}_j}{\partial W_{ji}} =
+                    \sum^T_t \delta^{(t)}_j \mathbf{h}^{(t)}_i
+                $$
+                which (ignoring the summation) is the same as in the feedforward case.
+            </p>
+            <p>
+                Learning in RNNs can be especially challenging due to the difficulty of learning long-range
+                dependencies (
+                <a href="../References.html#longTermDepDiff1">
+                    Learning long-term dependencies with gradient descent is difficult
+                </a>
+                and
+                <a href="../References.html#longTermDepDiff2">
+                    Gradient Flow in Recurrent Nets: the Difficulty of Learning Long-Term Dependencies
+                </a>).
+                This difficulty exists due to the need to propagate errors across many time steps, leading to vanishing
+                or exploding gradients. Consider figure A below with one input, hidden and output node. Now consider
+                an input passed to the network at time step $t'$ and an error calculate later at time step $t>t'$.
+                The tying of weights across time steps means that the recurrent edge at hidden node $\mathbf{h}_j$
+                always has the same weight. The contribution of the input at time step $t'$ to the output at time step
+                $t$ will therefore either explode or approach zero (exponentially fast) as $t-t'$ grows larger. Hence
+                the derivative of the error with respect to the input will either explode or vanish.
+            </p>
+            <img src="../Images/RNN/Unrolled.jpg">
+        </section>
+        <p>Uncited References:</p>
+        <ul>
+            <li>
+                <a href="../References.html#critReviewOfRNNs">
+                    A Critical Review of Recurrent Neural Networks for Sequence Learning
+                </a>
+            </li>
+            <li>
+                <a href="../References.html#GravesThesisBook">
+                    Supervised Sequence Labelling with Recurrent Neural Networks
+                </a>
+            </li>
+        </ul>
+    </body>
+</html>
