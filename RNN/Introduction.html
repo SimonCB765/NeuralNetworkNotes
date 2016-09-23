@@ -96,16 +96,16 @@
                 $\mathbf{a}^{l,(t)}_j$ is the activation of the $j$th node in the $l$th layer at timestep $t$ and
                 $\mathbf{h}^{l,(t)}_j$ is the output of the same node. The weight matrices can be similarly identified
                 with $W^l_{ji}$ being the weight on the edge between the $i$th node in layer $l-1$ and the $j$th node
-                in layer $l$ and $H^l_{ji}$ being the weight on the edge between the $i$th node in the $l$th layer at
+                in layer $l$ and $R^l_{ji}$ being the weight on the edge between the $i$th node in the $l$th layer at
                 timestep $t$ and the $j$th node in the $l$th layer at timestep $t+1$. There will be $L$ inter-layer
-                weight matrices ($W$ matrices) and one $H$ matrix per recurrent layer. As the weight matrices are
+                weight matrices ($W$ matrices) and one $R$ matrix per recurrent layer. As the weight matrices are
                 shared across timesteps no indication of the timestep is needed. Using this notation equations for
                 the activations and outputs of nodes in non-recurrent layers are the same as for feedforward networks
                 (with the addition of a timestep index), while recurrent layer activations and outputs can be
                 calculated as:
                 $$
                     \mathbf{a}^{l,(t)}_j =
-                        \sum_i W^l_{ji} \mathbf{h}^{l-1,(t)}_i + \sum_h H^l_{jh} \mathbf{h}^{l,(t-1)}_h \\
+                        \sum_i W^l_{ji} \mathbf{h}^{l-1,(t)}_i + \sum_h R^l_{jh} \mathbf{h}^{l,(t-1)}_h \\
                     \mathbf{h}^{l,(t)}_j = f_j(\mathbf{a}^{l,(t)}_j)
                 $$
             </p>
@@ -134,7 +134,7 @@
                         & = f'_j(\mathbf{a}^{l-1,(t)}_j)
                             \left(
                             \sum_j \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}_j} W^l_{ji} +
-                            \sum_h \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}_h} H^l_{hi}
+                            \sum_h \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}_h} R^l_{hi}
                             \right)
                     \end{align}
                 $$
@@ -148,7 +148,7 @@
                             \odot
                             \left(
                                 (W^l)^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}} +
-                                (H^l)^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}}
+                                (R^l)^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}}
                             \right)
                     \end{align}
                 $$
@@ -165,9 +165,9 @@
                 $$
                 and similarly for a recurrent weight:
                 $$
-                    \frac{\partial \mathcal{J}}{\partial H^l_{ji}} =
+                    \frac{\partial \mathcal{J}}{\partial R^l_{ji}} =
                     \sum^{T_o}_{t=1} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}_j}
-                        \frac{\partial \mathbf{a}^{l,(t)}_j}{\partial H^l_{ji}} =
+                        \frac{\partial \mathbf{a}^{l,(t)}_j}{\partial R^l_{ji}} =
                     \sum^{T_o}_{t=1} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}_j} \mathbf{h}^{l,(t-1)}_i
                 $$
             </p>
