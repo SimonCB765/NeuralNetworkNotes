@@ -97,7 +97,9 @@
                 $\mathbf{h}^{l,(t)}_j$ is the output of the same node. The weight matrices can be similarly identified
                 with $W^l_{ji}$ being the weight on the edge between the $i$th node in layer $l-1$ and the $j$th node
                 in layer $l$ and $R^l_{ji}$ being the weight on the edge between the $i$th node in the $l$th layer at
-                timestep $t$ and the $j$th node in the $l$th layer at timestep $t+1$. There will be $L$ inter-layer
+                timestep $t$ and the $j$th node in the $l$th layer at timestep $t+1$. The recurrent $R$ matrices must
+                be square as the number of outputs of the recurrent layer does not change between timesteps, while the
+                $W$ matrices can be rectangular if there are more inputs than outputs. There will be $L$ inter-layer
                 weight matrices ($W$ matrices) and one $R$ matrix per recurrent layer. As the weight matrices are
                 shared across timesteps no indication of the timestep is needed. Using this notation equations for
                 the activations and outputs of nodes in non-recurrent layers are the same as for feedforward networks
@@ -131,11 +133,11 @@
                         \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t)}_i}
                         & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l-1,(t)}_i}
                             \frac{\partial \mathbf{h}^{l-1,(t)}_i}{\partial \mathbf{a}^{l-1,(t)}_i} \\
-                        & = f'_j(\mathbf{a}^{l-1,(t)}_j)
-                            \left(
+                        & = \left(
                             \sum_j \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}_j} W^l_{ji} +
                             \sum_h \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}_h} R^l_{hi}
                             \right)
+                            f'_j(\mathbf{a}^{l-1,(t)}_j)
                     \end{align}
                 $$
                 or equivalently in vector form:
@@ -144,12 +146,12 @@
                         \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t)}}
                         & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l-1,(t)}}
                             \frac{\partial \mathbf{h}^{l-1,(t)}}{\partial \mathbf{a}^{l-1,(t)}} \\
-                        & = f'(\mathbf{a}^{l-1,(t)})
-                            \odot
-                            \left(
+                        & = \left(
                                 (W^l)^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l,(t)}} +
                                 (R^l)^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l-1,(t+1)}}
                             \right)
+                            \odot
+                            f'(\mathbf{a}^{l-1,(t)})
                     \end{align}
                 $$
                 The complete sequence of partial derivatives can be calculated starting with $t=T_o$ and applying the
@@ -202,6 +204,35 @@
                 following causality (especially if it is not unidirectional, as is the case with protein structure
                 prediction).
             </p>
+        </section>
+        <section>
+            <h2>Vanishing Gradient</h2>
+            <p>
+                Learning in RNNs can be especially challenging due to the difficulty of learning long-range
+                dependencies (
+                <a href="../References.html#longTermDepDiff1">
+                    Learning long-term dependencies with gradient descent is difficult
+                </a>
+                and
+                <a href="../References.html#longTermDepDiff2">
+                    Gradient Flow in Recurrent Nets: the Difficulty of Learning Long-Term Dependencies
+                </a>).
+                This difficulty exists due to the need to propagate errors across many time steps, leading to vanishing
+                or exploding gradients. Consider figure A below with one input, hidden and output node. Now consider
+                an input passed to the network at time step $t'$ and an error calculate later at time step $t>t'$.
+                The tying of weights across time steps means that the recurrent edge at hidden node $\mathbf{h}_j$
+                always has the same weight. The contribution of the input at time step $t'$ to the output at time step
+                $t$ will therefore either explode or approach zero (exponentially fast) as $t-t'$ grows larger. Hence
+                the derivative of the error with respect to the input will either explode or vanish. This can be seen
+                in the figure below, with darker nodes indicating ones that are more sensitive to the input at timestep
+                1, and lighter ones those that are less sensitive. The sensitivity decays over time as the network
+                'forgets' the input at the first timestep. This does not show the alternative problem when the gradient
+                increases as it passes through the network.
+            </p>
+            <figure>
+                <img src="../Images/RNN/VanishingGradient.jpg">
+                <figcaption><b>Vanishing Gradient.</b></figcaption>
+            </figure>
         </section>
         <p>Uncited References:</p>
         <ul>

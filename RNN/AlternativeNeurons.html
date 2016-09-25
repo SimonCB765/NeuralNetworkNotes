@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>RNN Neuron Variants</title>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}, TeX: {equationNumbers: {autoNumber: "all"}}});
+        </script>
+        <script async
+                src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML"
+                type="text/javascript">
+        </script>
+    </head>
+    <body>
+        <section>
+            <h2>Notation</h2>
+            <p>
+                The approaches demonstrated here for overcoming the vanishing gradient problem rely on replacing
+                the standard summation activation function neurons with a block that contains more complex internal
+                interactions. In order to visualise these blocks there is a need for not only recurrent and
+                non-recurrent edges, but also weighted and unweighted edges (with an unweighted edge having a fixed
+                weight of one). Additionally, the different types of connections are most easily visualised via
+                color-coding of the nodes and edges. The legend for all figures that include one of these blocks can
+                be seen below. Additionally, diagrams have been simplified by treating a layer as a single
+                vectorised node containing $n$ components, rather than $n$ separate nodes.
+            </p>
+            <figure>
+                <img src="../Images/RNN/FigureLegend.jpg">
+                <figcaption><b>Stuff Stuff Stuff Stuff.</b></figcaption>
+            </figure>
+        </section>
+        <section>
+            <h2>The Long Short-Term Memory Block</h2>
+            <p>
+                One common approach used to address the vanishing gradient problem is the
+                long short-term memory (LSTM) architecture. With this architecture each neuron in a recurrent layer is
+                replaced by a LSTM block. In its simplest form this block will contain a single memory cell and three
+                multiplicative units (the input, output and forget gates) that perform continuous analogues of write,
+                read and reset operations for the cell. However, it is possible (but uncommon) to incorporate more
+                than one memory cell into a block. As the same output layers can be used with LSTM networks and
+                standard RNNs, LSTM blocks can simply replace standard summation neurons when desired. An example of the
+                internal connections of an LSTM block can be seen below.
+            </p>
+            <figure>
+                <img src="../Images/RNN/LSTMBlock.jpg">
+                <figcaption>
+                    <b>Single cell LSTM memory block.</b> The three nonlinear gates control the activation of the cell
+                    through multiplications (small black circles). The input and output gates
+                    multiply the input to and output of the cell respectively, while the forget gate multiplies the
+                    cell's state from the previous timestep. The $f$ activation function is usually the logistic
+                    function to ensure that the gate output is between 1 (gate open) and 0 (gate close). The input and
+                    output functions ($g$ and $h$ respectively) are usually the tanh or logistic function, although
+                    in some cass $h$ may be the identity function. Weighted connections originate from
+                    outside the block (either from a previous timestep or from the layer below), while
+                    unweighted (weight one) connections are all internal. Inputs to the gates are all represented as
+                    vectorised nodes, with $\mathbf{c}^{l,(t-1)}$ here being a vector of the values of the memory cells
+                    in block $i$ during the previous timestep. Each cell only influences its own value across timesteps,
+                    there is no combining of cell values from different blocks or even from different cells in the same
+                    block.
+                </figcaption>
+            </figure>
+            <p>
+                The recurrent connections from the cell to the gates are peephole connections. In a LSTM block without
+                peephole connections, the gates can only see the contents of the memory cell(s) via the output of the
+                block during the previous timestep. However, if the output of the block is closed, i.e. the output gate
+                is close to 0, the gates can not see the contents of the memory cell(s). This lack of information may
+                prove detrimental to the performance of the network. Peephole connections circumvent this problem
+                by enabling the gates to see the contents of the memory cell(s) even when the output gate is closed.
+                The trade-off of this potential improvement is the need to optimised additional weight parameters
+                and a slight complication of the backpropagation equations.
+            </p>
+            <p>
+                The use of multiplicative gates enables LSTM memory cells to store and access information over long
+                periods of time, thereby mitigating the vanishing gradient problem. For example, while the input gate
+                remains closed (i.e. has an activation near 0) the cell cannot have its stored value overwritten by new
+                inputs arriving in the network. However, this stored value can be made available at any time by
+                opening the output gate. This preservation of gradient can be seen in the figure below.
+            </p>
+            <figure>
+                <img src="../Images/RNN/PreservedGradient.jpg">
+                <figcaption>
+                    <b>Preservation of gradient across timesteps.</b> The shading of the nodes indicates the sensitivity
+                    to the gradient at each time step. Coloured nodes sensitive, while white nodes are not. The state
+                    of the input, output and forget gates are indicated as open (arrows with O heads) or close (arrows
+                    with - heads). The input from timestep 1 is carried along until it is 'forgotten' after timestep 4,
+                    being output at timesteps 2 and 4. The input from timestep 5 is immediately stored and output, but
+                    is then combined with the input from timestep 6 before being output.
+                </figcaption>
+            </figure>
+            <p>
+                In order to perform the forward and backward passes of a RNN with a LSTM recurrent layer,
+                first note that representing the weights of edges entering a recurrent layer using $W^l$ and $R^l$
+                matrices and the bias using $\mathbf{b}^l$ is insufficient for an LSTM layer as we now have fifteen
+                sets of weighted connections entering the layer: four for each of the input, forget and output gates
+                and three for the input function $g$. In order to represent these additional edges, a further $P^l$
+                matrix is used to represent the peephole weights and the superscripts $i$, $f$, $o$ and $g$ are used
+                to indicate that edges are destined for the input gate, forget gate,
+                output gate or the input function $g$ respectively. The gives matrices like $W^{l,i}$ and
+                $R^{l,g}$ to respectively represent the edges from layer $l-1$ during the current timestep to the
+                input gate and the recurrent edges from layer $l$ during the previous timestep to the input activation
+                function.
+            </p>
+            <p>
+                In the following equations we assume that there is one memory cell per block. Additional memory cells
+                are permitted, but complicate the equations as vectorisation becomes impractical and you need to resort
+                to calculating the value of outputs sequentially. The forward pass calculations are:
+                $$
+                    \begin{align}
+                        \mathbf{i}^{l,(t)} & = f_i(W^{l,i} \mathbf{h}^{l-1,(t)} + R^{l,i} \mathbf{h}^{l,(t-1)} +
+                            P^{l,i} \mathbf{c}^{l,(t-1)} + \mathbf{b}^i) \label{inputOut} \\
+                        \mathbf{f}^{l,(t)} & = f_f(W^{l,f} \mathbf{h}^{l-1,(t)} + R^{l,f} \mathbf{h}^{l,(t-1)} +
+                            P^{l,f} \mathbf{c}^{l,(t-1)} + \mathbf{b}^f) \label{forgetOut} \\
+                        \mathbf{c}^{l,(t)} & = \mathbf{f}^{l,(t)} \mathbf{c}^{l,(t-1)} +
+                            \mathbf{i}^{l,(t)} g(W^{l,g} \mathbf{h}^{l-1,(t)} + R^{l,g} \mathbf{h}^{l,(t-1)} + \mathbf{b}^c) \label{cellOut} \\
+                        \mathbf{o}^{l,(t)} & = f_o(W^{l,o} \mathbf{h}^{l-1,(t)} + R^{l,o} \mathbf{h}^{l,(t-1)} +
+                            P^{l,o} \mathbf{c}^{l,(t-1)} + \mathbf{b}^o) \label{outputOut} \\
+                        \mathbf{h}^{l,(t)} & = \mathbf{o}^{l,(t)} h(\mathbf{c}^{l,(t)}) \label{blockOut} \\
+                    \end{align}
+                $$
+                The $P$ matrix is forced to be diagonal in order to ensure that the memory cell in block $i$ is not
+                influenced by the value of any other cell. The states of the memory cell in each of the $n$ LSTM blocks
+                in the layer can then be represented by a vector, which when multiplied by the appropriate diagonal
+                $P$ matrix gives the desired vector of memory states times their peephole weights.
+            </p>
+            <p>
+                For the LSTM backpropagation equations below we take $\mathbf{a}^{i,l,(t)}$
+                to be the vector of activations of the input gates of the LSTM layer $l$ at timestep $t$, i.e. the
+                summed input to the gate, with similar notation for the forget gate $f$, output gate $o$, input
+                function $g$ and memory cell values $c$. The output of the gates, cell and the input function are still
+                represented as above, rather than the equivalent, e.g. $\mathbf{h}^{i,l,(t)}$ for the input gate.
+                The activation and output of an entire layer
+                (LSTM or otherwise) are also still represented as $\mathbf{a}^{l,(t)}$ and $\mathbf{h}^{l,(t)}$
+                respectively. We begin with the backpropagation equations for the entire block and the output gate.
+                $$
+                    \begin{align}
+                        & \text{Block Outputs (Non-LSTM Next Layer)}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                & = (W^{l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l+1,(t)}} +
+                                    (R^{l,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t+1)}} +
+                                    (R^{l,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t+1)}} +
+                                    (R^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} +
+                                    (R^{l,g})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{g,l,(t+1)}} \\
+                        & \text{Block Outputs (LSTM Next Layer)}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                & = (W^{l+1,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l+1,(t)}} +
+                                    (W^{l+1,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l+1,(t)}} +
+                                    (W^{l+1,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l+1,(t)}} +
+                                    (W^{l+1,g})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{g,l+1,(t)}} +
+                                    (R^{l,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t+1)}} +
+                                    (R^{l,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t+1)}} +
+                                    (R^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} +
+                                    (R^{l,g})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{g,l,(t+1)}} \\
+                        & \text{Output Gate Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    \frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{o}^{l,(t)}}
+                                    \frac{\partial \mathbf{o}^{l,(t)}}{\partial \mathbf{a}^{o,l,(t)}} \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    h(\mathbf{c}^{l,(t)})
+                                    f'(\mathbf{a}^{o,l,(t)})
+                    \end{align}
+                $$
+                The gradient at the block output has to take into account both the non-recurrent connections to the
+                following layer $l+1$ and the recurrent connections to layer $l$ at the next timestep. For an LSTM
+                layer there are four set of recurrent connections: to the input gate, forget gate, output gate and
+                input function $g$. Therefore, we need to propagate the derivative back through each of these sets
+                of connections in order to compute the derivative on the output of LSTM layer $l$ at timestep $t$. If
+                layer $l+1$ is not an LSTM layer (i.e. is a standard recurrent layer or a non-recurrent layer), then
+                there is only one set of weights to propagate the derivatives back through to layer $l$. However,
+                if layer $l+1$ is an LSTM layer, then there are four sets of weights through which the derivative needs
+                propagating. The derivative at the activation side of the output gate is calculated in the same
+                manner as for non-recurrent layers. The only note is that
+                $\frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{o}^{l,(t)}}$ is calculated using \eqref{blockOut}
+                and $\frac{\partial \mathbf{o}^{l,(t)}}{\partial \mathbf{a}^{o,l,(t)}}$ is calculated using
+                \eqref{outputOut}, noting that it is equivalent to $\mathbf{o}^{l,(t)} = f_o(\mathbf{a}^{i,l,(t)})$.
+                $$
+                    \begin{align}
+                        & \text{Memory Cell Outputs}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                        \frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{c}^{l,(t)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t+1)}}
+                                        \frac{\partial \mathbf{c}^{l,(t+1)}}{\partial \mathbf{c}^{l,(t)}} +
+                                    (P^{l,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t+1)}} +
+                                    (P^{l,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t+1)}} +
+                                    (P^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                        \mathbf{o}^{l,(t)}
+                                        h'(\mathbf{c}^{l,(t)}) +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                        \mathbf{f}^{l,(t+1)} +
+                                    (P^{l,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t+1)}} +
+                                    (P^{l,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t+1)}} +
+                                    (P^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} \\
+                        & \text{Memory Cell Activations (via Input Function)}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{c,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{a}^{g,l,(t)}} \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    \mathbf{i}^{l,(t)} g'(\mathbf{a}^{g,l,(t)})
+                    \end{align}
+                $$
+                The memory cell has five outgoing edges, one that contributes to computing the block output, three
+                weighted ones that serve as peephole weights and one unweighted one that contributes to computing
+                the cell state at the next timestep. The derivative for the cost with respect to the output of the
+                memory cell therefore has five summed terms. The first term,
+                $\frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}} \mathbf{o}^{l,(t)} h'(\mathbf{c}^{l,(t)})$,
+                is the propagation of the gradient back through the output of the block to the cell. For this term,
+                $\frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{c}^{l,(t)}}$ is computed from \eqref{blockOut}.
+                The second term,
+                $
+                    \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t+1)}}
+                    \frac{\partial \mathbf{c}^{l,(t+1)}}{\partial \mathbf{c}^{l,(t)}}
+                $,
+                comes from propagating the derivative back to the memory cell at time $t$ from the
+                multiplication of the cell state with the forget gate that computes one of the inputs to the cell at
+                time $t+1$. This derivative is propagated back through the edge that goes directly to the cell, not
+                through the forget gate, as the path through the forget gate to the cell state is handled by
+                backpropagating through the peephole edges.
+                <br>
+                The derivative with respect to the memory cell activations only takes into account the input function
+                branch as the propagation through the input and forget gates is handled when backpropagating through
+                the input and forget gates, and so would be double counted if it was included here. The gradient
+                $
+                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{a}^{g,l,(t)}}
+                    = \mathbf{i}^{l,(t)} g'(\mathbf{a}^{g,l,(t)})
+                $
+                follows from \eqref{cellOut} as \eqref{cellOut} can be rewritten as
+                $\mathbf{c}^{l,(t)} = \mathbf{f}^{l,(t)} \mathbf{c}^{l,(t-1)} + \mathbf{i}^{l,(t)} g(\mathbf{a}^{i,l,(t)})$
+                $$
+                    \begin{align}
+                        & \text{Forget Gate Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{f}^{l,(t)}}
+                                    \frac{\partial \mathbf{f}^{l,(t)}}{\partial \mathbf{a}^{f,l,(t)}} \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    \mathbf{c}^{l,(t-1)}
+                                    f'_f(\mathbf{a}^{f,l,(t)}) \\
+                        & \text{Input Gate Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{i}^{l,(t)}}
+                                    \frac{\partial \mathbf{i}^{l,(t)}}{\partial \mathbf{a}^{i,l,(t)}} \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
+                                    g(\mathbf{a}^{i,l,(t)})
+                                    f'_i(\mathbf{a}^{i,l,(t)}) \\
+                    \end{align}
+                $$
+                The equations for the input and forget gate activations follow by rewriting \eqref{inputOut} and
+                \eqref{forgetOut} as $\mathbf{i}^{l,(t)} = f_i(\mathbf{a}^{i,l,(t)})$ and
+                $\mathbf{f}^{l,(t)} = f_f(\mathbf{a}^{f,l,(t)})$ respectively.
+            </p>
+            <p>
+                The equations for the derivatives with respect to the weights and biases can be derived in the same
+                manner as they are for a standard neural network or RNN.
+            </p>
+        </section>
+        <section>
+            <h2>Gated Recurrent Units</h2>
+        </section>
+        <p>Uncited References:</p>
+        <ul>
+            <li>
+                <a href="../References.html#GravesThesisBook">
+                    Supervised Sequence Labelling with Recurrent Neural Networks
+                </a>
+            </li>
+            <li>
+                <a href="../References.html#Graves2003">
+                    Generating Sequences With Recurrent Neural Networks
+                </a>
+            </li>
+            <li>
+                <a href="../References.html#Gers2002">
+                    Generating Sequences With Recurrent Neural Networks
+                </a>
+            </li>
+        </ul>
+    </body>
+</html>
