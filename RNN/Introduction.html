@@ -206,32 +206,34 @@
             </p>
         </section>
         <section>
-            <h2>Vanishing Gradient</h2>
+            <h2>Vanishing and Exploding Gradients</h2>
             <p>
-                Learning in RNNs can be especially challenging due to the difficulty of learning long-range
-                dependencies (
-                <a href="../References.html#longTermDepDiff1">
-                    Learning long-term dependencies with gradient descent is difficult
-                </a>
-                and
-                <a href="../References.html#longTermDepDiff2">
-                    Gradient Flow in Recurrent Nets: the Difficulty of Learning Long-Term Dependencies
-                </a>).
-                This difficulty exists due to the need to propagate errors across many time steps, leading to vanishing
-                or exploding gradients. Consider figure A below with one input, hidden and output node. Now consider
-                an input passed to the network at time step $t'$ and an error calculate later at time step $t>t'$.
-                The tying of weights across time steps means that the recurrent edge at hidden node $\mathbf{h}_j$
-                always has the same weight. The contribution of the input at time step $t'$ to the output at time step
-                $t$ will therefore either explode or approach zero (exponentially fast) as $t-t'$ grows larger. Hence
-                the derivative of the error with respect to the input will either explode or vanish. This can be seen
-                in the figure below, with darker nodes indicating ones that are more sensitive to the input at timestep
-                1, and lighter ones those that are less sensitive. The sensitivity decays over time as the network
-                'forgets' the input at the first timestep. This does not show the alternative problem when the gradient
-                increases as it passes through the network.
+                Learning in RNNs can be especially challenging due to the difficulty of learning dependencies over long
+                time frames (see e.g. <a href="../References.html#longTermDepDiff1">here</a> and
+                <a href="../References.html#longTermDepDiff2">here</a>). A task can be said to have long-range
+                dependencies if the prediction of the output at time $t$ is dependant on the input at some time
+                $t' \ll t$. When using gradient-based training with backpropagation this can present problems
+                as the chain rule requires that the product of gradients be computed to find the derivative of the
+                cost function with respect to a given parameter. For long-range dependencies this requires computing
+                the product of many gradients in order to propagate the gradient back to timestep $t'$. As BPTT is in
+                essence an unfolding of the RNN into a standard (but deep) feedforward network, similar problems
+                with the gradient appear. If you take a common activation function such as a sigmoid or tanh function,
+                then the derivative of the function will be no greater than one. As the gradient passes through a
+                neuron implementing one of these functions the gradient is likely to decrease, and over multiple layers
+                it becomes likely to dwindle to almost nothing. Alternatively, the gradient can explode and overflow
+                when conditions are right. This problem is illustrated in the figure below. The sensitivity of the
+                output to a given input decays with the distance in time between the input and output. One solution
+                to this problem is to clip the gradient to an acceptable range, e.g. $[-0.1, 0.1]$. Alternatively,
+                special types of neurons can be employed.
             </p>
             <figure>
                 <img src="../Images/RNN/VanishingGradient.jpg">
-                <figcaption><b>Vanishing Gradient.</b></figcaption>
+                <figcaption>
+                    <b>Vanishing Gradient.</b>Dark nodes indicate those neurons that are most sensitive to the input
+                    at timestep $t=1$, with nodes becoming less sensitive as they become lighter (and therefore as
+                    $t' - t$ becomes larger). The sensitivity of the output to the input can be seen to decay with time
+                    as the network 'forgets' the input.
+                </figcaption>
             </figure>
         </section>
         <p>Uncited References:</p>
