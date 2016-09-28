@@ -26,7 +26,7 @@
             </p>
             <figure>
                 <img src="../Images/RNN/FigureLegend.jpg">
-                <figcaption><b>Stuff Stuff Stuff Stuff.</b></figcaption>
+                <figcaption><b>Legend for RNN Figures with Non-standard Recurrent Activation Functions.</b></figcaption>
             </figure>
         </section>
         <section>
@@ -111,13 +111,13 @@
                         \mathbf{f}^{l,(t)} & = f_f(W^{l,f} \mathbf{h}^{l-1,(t)} + R^{l,f} \mathbf{h}^{l,(t-1)} +
                             P^{l,f} \mathbf{c}^{l,(t-1)} + \mathbf{b}^f) \label{forgetOut} \\
                         \mathbf{c}^{l,(t)} & = \mathbf{f}^{l,(t)} \mathbf{c}^{l,(t-1)} +
-                            \mathbf{i}^{l,(t)} g(W^{l,g} \mathbf{h}^{l-1,(t)} + R^{l,g} \mathbf{h}^{l,(t-1)} + \mathbf{b}^c) \label{cellOut} \\
+                            \mathbf{i}^{l,(t)} g(W^{l,g} \mathbf{h}^{l-1,(t)} + R^{l,g} \mathbf{h}^{l,(t-1)} + \mathbf{b}^g) \label{cellOut} \\
                         \mathbf{o}^{l,(t)} & = f_o(W^{l,o} \mathbf{h}^{l-1,(t)} + R^{l,o} \mathbf{h}^{l,(t-1)} +
                             P^{l,o} \mathbf{c}^{l,(t-1)} + \mathbf{b}^o) \label{outputOut} \\
                         \mathbf{h}^{l,(t)} & = \mathbf{o}^{l,(t)} h(\mathbf{c}^{l,(t)}) \label{blockOut} \\
                     \end{align}
                 $$
-                The $P$ matrix is forced to be diagonal in order to ensure that the memory cell in block $i$ is not
+                The $P$ matrices are forced to be diagonal in order to ensure that the memory cell in block $i$ is not
                 influenced by the value of any other cell. The states of the memory cell in each of the $n$ LSTM blocks
                 in the layer can then be represented by a vector, which when multiplied by the appropriate diagonal
                 $P$ matrix gives the desired vector of memory states times their peephole weights.
