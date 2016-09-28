@@ -258,6 +258,16 @@
         </section>
         <section>
             <h2>Gated Recurrent Units</h2>
+            $z^{l,(t)}$ is sometimes (like in Cho's original) multiplied by the previous hidden state and sometimes by
+            the candidate hidden state. Either is fine as the weight matrices will just be slightly different for the
+            linear interpolation
+            <figure>
+                <img src="../Images/RNN/GRUBlock.jpg">
+                <figcaption>
+                    <b>GRU Block.</b>
+                    black square takes one input $i$ and computes $(1-i)$.
+                </figcaption>
+            </figure>
         </section>
         <p>Uncited References:</p>
         <ul>
