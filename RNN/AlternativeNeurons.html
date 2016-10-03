@@ -107,13 +107,13 @@
                 $$
                     \begin{align}
                         \mathbf{i}^{l,(t)} & = f_i(W^{l,i} \mathbf{h}^{l-1,(t)} + R^{l,i} \mathbf{h}^{l,(t-1)} +
-                            P^{l,i} \mathbf{c}^{l,(t-1)} + \mathbf{b}^i) \label{inputOut} \\
+                            P^{l,i} \mathbf{c}^{l,(t-1)} + \mathbf{b}^{l,i}) \label{inputOut} \\
                         \mathbf{f}^{l,(t)} & = f_f(W^{l,f} \mathbf{h}^{l-1,(t)} + R^{l,f} \mathbf{h}^{l,(t-1)} +
-                            P^{l,f} \mathbf{c}^{l,(t-1)} + \mathbf{b}^f) \label{forgetOut} \\
+                            P^{l,f} \mathbf{c}^{l,(t-1)} + \mathbf{b}^{l,f}) \label{forgetOut} \\
                         \mathbf{c}^{l,(t)} & = \mathbf{f}^{l,(t)} \mathbf{c}^{l,(t-1)} +
-                            \mathbf{i}^{l,(t)} g(W^{l,g} \mathbf{h}^{l-1,(t)} + R^{l,g} \mathbf{h}^{l,(t-1)} + \mathbf{b}^g) \label{cellOut} \\
+                            \mathbf{i}^{l,(t)} g(W^{l,g} \mathbf{h}^{l-1,(t)} + R^{l,g} \mathbf{h}^{l,(t-1)} + \mathbf{b}^{l,g}) \label{cellOut} \\
                         \mathbf{o}^{l,(t)} & = f_o(W^{l,o} \mathbf{h}^{l-1,(t)} + R^{l,o} \mathbf{h}^{l,(t-1)} +
-                            P^{l,o} \mathbf{c}^{l,(t-1)} + \mathbf{b}^o) \label{outputOut} \\
+                            P^{l,o} \mathbf{c}^{l,(t-1)} + \mathbf{b}^{l,o}) \label{outputOut} \\
                         \mathbf{h}^{l,(t)} & = \mathbf{o}^{l,(t)} h(\mathbf{c}^{l,(t)}) \label{blockOut} \\
                     \end{align}
                 $$
@@ -127,7 +127,8 @@
                 to be the vector of activations of the input gates of the LSTM layer $l$ at timestep $t$, i.e. the
                 summed input to the gate, with similar notation for the forget gate $f$, output gate $o$, input
                 function $g$ and memory cell values $c$. The output of the gates, cell and the input function are still
-                represented as above, rather than the equivalent, e.g. $\mathbf{h}^{i,l,(t)}$ for the input gate.
+                represented as above, rather than the equivalent, e.g. $\mathbf{i}^{l,(t)}$ for the output of the input
+                gate rather than $\mathbf{h}^{i,l,(t)}$.
                 The activation and output of an entire layer
                 (LSTM or otherwise) are also still represented as $\mathbf{a}^{l,(t)}$ and $\mathbf{h}^{l,(t)}$
                 respectively. We begin with the backpropagation equations for the entire block and the output gate.
@@ -154,7 +155,7 @@
                             & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t)}}
                                 & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
                                     \frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{o}^{l,(t)}}
-                                    \frac{\partial \mathbf{o}^{l,(t)}}{\partial \mathbf{a}^{o,l,(t)}} \\
+                                    \frac{\partial \mathbf{o}^{l,(t)}}{\partial \mathbf{a}^{o,l,(t)}} \nonumber \\
                               &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
                                     h(\mathbf{c}^{l,(t)})
                                     f'(\mathbf{a}^{o,l,(t)})
@@ -183,7 +184,7 @@
                                         \frac{\partial \mathbf{c}^{l,(t+1)}}{\partial \mathbf{c}^{l,(t)}} +
                                     (P^{l,i})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t+1)}} +
                                     (P^{l,f})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t+1)}} +
-                                    (P^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} \\
+                                    (P^{l,o})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{o,l,(t+1)}} \nonumber \\
                               &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
                                         \mathbf{o}^{l,(t)}
                                         h'(\mathbf{c}^{l,(t)}) +
@@ -195,7 +196,7 @@
                         & \text{Memory Cell Activations (via Input Function)}
                             & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{c,l,(t)}}
                                 & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
-                                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{a}^{g,l,(t)}} \\
+                                    \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{a}^{g,l,(t)}} \nonumber \\
                               &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
                                     \mathbf{i}^{l,(t)} g'(\mathbf{a}^{g,l,(t)})
                     \end{align}
@@ -205,7 +206,8 @@
                 the cell state at the next timestep. The derivative for the cost with respect to the output of the
                 memory cell therefore has five summed terms. The first term,
                 $\frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}} \mathbf{o}^{l,(t)} h'(\mathbf{c}^{l,(t)})$,
-                is the propagation of the gradient back through the output of the block to the cell. For this term,
+                is the backpropagation of the gradient through the block circle that calculates the output of the block
+                and through the $h$ function back to the cell. For this term,
                 $\frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{c}^{l,(t)}}$ is computed from \eqref{blockOut}.
                 The second term,
                 $
@@ -233,7 +235,7 @@
                             & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{f,l,(t)}}
                                 & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
                                     \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{f}^{l,(t)}}
-                                    \frac{\partial \mathbf{f}^{l,(t)}}{\partial \mathbf{a}^{f,l,(t)}} \\
+                                    \frac{\partial \mathbf{f}^{l,(t)}}{\partial \mathbf{a}^{f,l,(t)}} \nonumber \\
                               &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
                                     \mathbf{c}^{l,(t-1)}
                                     f'_f(\mathbf{a}^{f,l,(t)}) \\
@@ -241,7 +243,7 @@
                             & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{i,l,(t)}}
                                 & = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
                                     \frac{\partial \mathbf{c}^{l,(t)}}{\partial \mathbf{i}^{l,(t)}}
-                                    \frac{\partial \mathbf{i}^{l,(t)}}{\partial \mathbf{a}^{i,l,(t)}} \\
+                                    \frac{\partial \mathbf{i}^{l,(t)}}{\partial \mathbf{a}^{i,l,(t)}} \nonumber \\
                               &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{c}^{l,(t)}}
                                     g(\mathbf{a}^{i,l,(t)})
                                     f'_i(\mathbf{a}^{i,l,(t)}) \\
@@ -258,16 +260,157 @@
         </section>
         <section>
             <h2>Gated Recurrent Units</h2>
-            $z^{l,(t)}$ is sometimes (like in Cho's original) multiplied by the previous hidden state and sometimes by
-            the candidate hidden state. Either is fine as the weight matrices will just be slightly different for the
-            linear interpolation
+            <p>
+                Another recurrent proposed in order to overcome the vanishing gradient problem is the gated recurrent
+                unit (GRU) (<a href="../References.html#Cho2014">Ref</a>). Similar to an LSTM, GRUs contain internal
+                gates to control the flow and updating of information, and ultimately what information is stored between
+                timesteps. However, unlike LSTMs, GRUs do not have a mechanism for controlling the degree to which the
+                state of the unit is exposed at each timestep as they lack an output gate ($h$ in the LSTM). Rather,
+                they expose the entire state at each timestep and compute their output as a linear interpolation
+                between the previous output of the unit at time $t-1$ and a candidate output produced by the unit at
+                time $t$. In order to perform this linear interpolation, GRUs make use of three gates: a reset gate, an update
+                gate and a gate to compute the candidate output. The configuration of these gates in standard GRU can
+                be seen below.
+            </p>
             <figure>
                 <img src="../Images/RNN/GRUBlock.jpg">
                 <figcaption>
-                    <b>GRU Block.</b>
-                    black square takes one input $i$ and computes $(1-i)$.
+                    <b>GRU Block.</b> The symbols used are the same as for the LSTM, with the $f$ gates usually the
+                    logistic function and $g$ usually tanh or the logistic function. The black square takes on input
+                    $i$ and computes $(1-i)$.
                 </figcaption>
             </figure>
+            <p>
+                In this configuration, when the reset gate output is close to 0 the candidate output is largely
+                dependent on the input to the unit. This makes the unit act as if it is reading the first element
+                of a sequence. In contrast, the update gate controls the level of missing between the candidate output
+                and the output at the previous timestep. When near 1, the output of the previous timestep is largely
+                passed through without any mixing with the input at the current timestep. On the other hand, when the
+                output of the update gate is near 0, the unit's output largely comprises of the candidate output. The
+                update gate therefore performs a similar role as the cell in an LSTM block, as it controls what
+                information accumulates in the unit over time.
+            </p>
+            <p>
+                The equations for calculating the output of a GRU can be seen below. These are largely simpler than the
+                LSTM update equations, and contain fewer parameters due to the lack of peephole weights and the
+                reduction in the number of components. Similar to the LSTM equations, superscripts $r$, $z$ and
+                $\widetilde{h}$ are used to indicate weights (and biases) entering the reset gate, update gate and the
+                $g$ function that computes the candidate output. This gives weight matrices such as $W^{l,r}$ and
+                $R^{l,z}$ that respectively represent the edges from layer $l-1$ during the current timestep to the
+                reset gate and the recurrent edges from layer $l$ in previous timestep to the update gate.
+                $$
+                    \begin{align}
+                        \mathbf{r}^{l,(t)} & = f_r(W^{l,r} \mathbf{h}^{l-1,(t)} + R^{l,r} \mathbf{h}^{l,(t-1)} +
+                            \mathbf{b}^{l,r}) \label{resetOut} \\
+                        \mathbf{z}^{l,(t)} & = f_z(W^{l,z} \mathbf{h}^{l-1,(t)} + R^{l,z} \mathbf{h}^{l,(t-1)} +
+                            \mathbf{b}^{l,z}) \label{updateOut} \\
+                        \widetilde{\mathbf{h}}^{l,(t)} & = g(W^{l,\widetilde{h}} \mathbf{h}^{l-1,(t)} +
+                            R^{l,\widetilde{h}} (\mathbf{r}^{l,(t)} \odot \mathbf{h}^{l,(t-1)}) +
+                            \mathbf{b}^{l,\widetilde{h}}) \label{tildeOut} \\
+                        \mathbf{h}^{l,(t)} & = \mathbf{z}^{l,(t)} \odot \mathbf{h}^{l,(t-1)} +
+                            (1 - \mathbf{z}^{l,(t)}) \odot \widetilde{\mathbf{h}}^{l,(t)} \label{GRUOut}
+                    \end{align}
+                $$
+                Here $\mathbf{z}^{l,(t)}$ is multiplied by $\mathbf{h}^{l,(t-1)}$ rather than
+                $\widetilde{\mathbf{h}}^{l,(t)}$. Some formulations will reverse these calculations to calculate
+                $(1 - \mathbf{z}^{l,(t)}) \odot \mathbf{h}^{l,(t-1)}$ and
+                $\mathbf{z}^{l,(t)} \odot \widetilde{\mathbf{h}}^{l,(t)}$. This shouldn't make a difference as the
+                weight matrices (and biases) should alter in order to compute the same interpolation.
+            </p>
+            <p>
+                For the GRU backpropagation equations below we take $\mathbf{a}^{r,l,(t)}$
+                to be the vector of activations of the reset gates of the GRU layer $l$ at timestep $t$, i.e. the
+                summed input to the gate, with similar notation for the update gate $z$ and candidate output
+                function $\widetilde{h}$. The output of the gates and candidate output function function are still
+                represented as above, rather than the equivalent, e.g. $\mathbf{r}^{l,(t)}$ is used for the output of
+                the reset gate rater than $\mathbf{h}^{r,l,(t)}$.
+                The activation and output of an entire layer
+                (GRU or otherwise) are also still represented as $\mathbf{a}^{l,(t)}$ and $\mathbf{h}^{l,(t)}$
+                respectively. We begin with the activations of the update gate and the candidate output function $g$.
+                $$
+                    \begin{align}
+                        & \text{Update Gate Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    \frac{\partial \mathbf{h}^{l,(t)}}{\partial \mathbf{z}^{l,(t)}}
+                                    \frac{\partial \mathbf{z}^{l,(t)}}{\partial \mathbf{a}^{z,l,(t)}} \nonumber \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    (\mathbf{h}^{l,(t-1)} - \widetilde{\mathbf{h}}^{l,(t)})
+                                    f_z'(\mathbf{a}^{z,l,(t)}) \\
+                        & \text{Candidate Output Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    \frac{\partial \mathbf{h}^{l,(t)}}{\partial \widetilde{\mathbf{h}}^{l,(t)}}
+                                    \frac{\partial \widetilde{\mathbf{h}}^{l,(t)}}{\partial \mathbf{a}^{\widetilde{h},l,(t)}} \nonumber \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                    (1 - \mathbf{z}^{l,(t)})
+                                    g'(\mathbf{a}^{\widetilde{h},l,(t)}) \\
+                    \end{align}
+                $$
+                The equations for the reset and update gate activations follow by rewriting \eqref{updateOut} and
+                \eqref{tildeOut} as $\mathbf{z}^{l,(t)} = f_z(\mathbf{a}^{z,l,(t)})$ and
+                $\widetilde{\mathbf{h}}^{l,(t)} = g(\mathbf{a}^{\widetilde{h},l,(t)})$ respectively.
+                $$
+                    \begin{align}
+                        & \text{Reset Gate Activations}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l,(t)}}
+                                & = \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t)}}
+                                    \frac{\partial \mathbf{a}^{\widetilde{h},l,(t)}}{\partial \mathbf{r}^{l,(t)}}
+                                    \frac{\partial \mathbf{r}^{l,(t)}}{\partial \mathbf{a}^{r,l,(t)}} \nonumber \\
+                              &&& = \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t)}}
+                                    ((R^{l,\widetilde{h}})^{\mathsf{T}} \mathbf{h}^{l,(t-1)})
+                                    f_r'(\mathbf{a}^{r,l,(t)})
+                    \end{align}
+                $$
+                The derivation with respect to the reset gate follows from rewriting \eqref{resetOut} as
+                $\mathbf{r}^{l,(t)} = f_r(\mathbf{a}^{r,l,(t)})$.
+                $$
+                    \begin{align}
+                        & \text{Block Outputs (Non-GRU Next Layer)}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                & = (W^{l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l+1,(t)}} +
+                                    (R^{l,r})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l,(t+1)}} +
+                                    (R^{l,z})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l,(t+1)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t+1)}}
+                                        \frac{\partial \mathbf{h}^{l,(t+1)}}{\partial \mathbf{h}^{l,(t)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}
+                                        \frac{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}{\partial \mathbf{h}^{l,(t)}} \nonumber \\
+                              &&& = (W^{l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l+1,(t)}} +
+                                    (R^{l,r})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l,(t+1)}} +
+                                    (R^{l,z})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l,(t+1)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t+1)}} \mathbf{z}^{l,(t+1)} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}
+                                    ((R^{l,\widetilde{h}})^{\mathsf{T}} \mathbf{r}^{l,(t+1)}) \\
+                        & \text{Block Outputs (GRU Next Layer)}
+                            & \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t)}}
+                                & = (W^{l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{l+1,(t)}} +
+                                    (R^{l,r})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l,(t+1)}} +
+                                    (R^{l,z})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l,(t+1)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t+1)}}
+                                        \frac{\partial \mathbf{h}^{l,(t+1)}}{\partial \mathbf{h}^{l,(t)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}
+                                        \frac{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}{\partial \mathbf{h}^{l,(t)}} \nonumber \\
+                              &&& = (W^{r,l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l+1,(t)}} +
+                                    (W^{z,l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l+1,(t)}} +
+                                    (W^{\widetilde{h},l+1})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l+1,(t)}} +
+                                    (R^{l,r})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{r,l,(t+1)}} +
+                                    (R^{l,z})^{\mathsf{T}} \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{z,l,(t+1)}} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{h}^{l,(t+1)}} \mathbf{z}^{l,(t+1)} +
+                                    \frac{\partial \mathcal{J}}{\partial \mathbf{a}^{\widetilde{h},l,(t+1)}}
+                                    ((R^{l,\widetilde{h}})^{\mathsf{T}} \mathbf{r}^{l,(t+1)})
+                    \end{align}
+                $$
+                The output of a GRU block has five outgoing edges (in the case of a non-GRU next layer), one weighted
+                edge to the next layer, weighted edges to the reset and update gates at the next timestep and unweighted
+                edges that get multiplied by $\mathbf{r}^{l,(t)}$ and $\mathbf{z}^{l,(t)}$. In the case of a non-GRU
+                next layer the derivative of the cost with the respect to the block output will therefore consist of
+                five summed terms. In the case of the following layer containing GRUs, then there are three sets of
+                edges (rather than one) through which the derivative must be propagated back, giving seven summed terms.
+            </p>
+            <p>
+                The equations for the derivatives with respect to the weights and biases can be derived in the same
+                manner as they are for a standard neural network or RNN.
+            </p>
         </section>
         <p>Uncited References:</p>
         <ul>
@@ -284,6 +427,11 @@
             <li>
                 <a href="../References.html#Gers2002">
                     Generating Sequences With Recurrent Neural Networks
+                </a>
+            </li>
+            <li>
+                <a href="../References.html#RNNTheory">
+                    Written Memories: Understanding, Deriving and Extending the LSTM
                 </a>
             </li>
         </ul>

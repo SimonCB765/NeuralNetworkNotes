@@ -505,7 +505,7 @@ Deeper Layer<y:LabelModel>
           <y:Geometry height="30.0" width="30.0" x="945.0" y="-7.5"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="italic" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="7.333984375" x="11.3330078125" y="5.6494140625">f<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="26.0" modelName="custom" textColor="#000000" visible="true" width="13.0" x="8.5" y="2.0">&lt;html&gt;f&lt;sub&gt;o&lt;/sub&gt;&lt;/html&gt;<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -522,7 +522,7 @@ Deeper Layer<y:LabelModel>
           <y:Geometry height="30.0" width="30.0" x="945.0" y="112.5"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="italic" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="7.333984375" x="11.3330078125" y="5.6494140625">f<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="26.0" modelName="custom" textColor="#000000" visible="true" width="10.0" x="10.0" y="2.0">&lt;html&gt;f&lt;sub&gt;f&lt;/sub&gt;&lt;/html&gt;<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -539,7 +539,7 @@ Deeper Layer<y:LabelModel>
           <y:Geometry height="30.0" width="30.0" x="945.0" y="232.5"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="italic" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="7.333984375" x="11.3330078125" y="5.6494140625">f<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="26.0" modelName="custom" textColor="#000000" visible="true" width="10.0" x="10.0" y="2.0">&lt;html&gt;f&lt;sub&gt;i&lt;/sub&gt;&lt;/html&gt;<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
